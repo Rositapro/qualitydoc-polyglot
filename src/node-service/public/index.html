@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QualityDoc - Portal de Búsqueda</title>
+  <!-- Google Fonts -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Lato:wght@400;700&family=Playfair+Display:ital,wght@0,500;0,700;1,400&display=swap">
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  
+  <style>
+    :root {
+      --dark-espresso: #1A120B;
+      --mocha-brown: #3C2A21;
+      --warm-taupe: #D5CEB8;
+      --champagne-ivory: #F4F0E6;
+      --gold-accent: #C4A45C;
+      --text-dark: #2C241B;
+      --error-red: #8B2E2E;
+      --light-border: #E8E5DF;
+      --success-green: #2E7D32;
+      --blue-accent: #1976D2;
+    }
+
+    body {
+      font-family: 'Lato', sans-serif;
+      background-color: var(--champagne-ivory);
+      color: var(--text-dark);
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    h1, h2, h3, h4, .font-title {
+      font-family: 'Playfair Display', serif;
+      color: var(--dark-espresso);
+    }
+
+    /* CONTENEDOR DE LOGIN */
+    #login-wrapper {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background-color: var(--champagne-ivory);
+    }
+
+    .login-card {
+      background-color: white;
+      border-radius: 15px;
+      box-shadow: 0 15px 35px rgba(26, 18, 11, 0.08);
+      border-top: 5px solid var(--gold-accent);
+      width: 100%;
+      max-width: 400px;
+      padding: 40px 30px;
+    }
+
+    .login-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--dark-espresso);
+      text-align: center;
+      margin-bottom: 5px;
+    }
+
+    .login-subtitle {
+      text-align: center;
+      color: var(--mocha-brown);
+      font-size: 0.95rem;
+      margin-bottom: 30px;
+      letter-spacing: 0.5px;
+    }
+
+    .form-label-custom {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--mocha-brown);
+      margin-bottom: 6px;
+    }
+
+    .input-custom {
+      border: 1px solid var(--warm-taupe) !important;
+      padding: 10px 15px;
+      border-radius: 8px !important;
+      font-family: 'Lato', sans-serif;
+    }
+
+    .input-custom:focus {
+      border-color: var(--gold-accent) !important;
+      box-shadow: 0 0 0 3px rgba(196, 164, 92, 0.2) !important;
+    }
+
+    .btn-login-submit {
+      background: var(--mocha-brown);
+      color: white;
+      border: none;
+      padding: 12px;
+      font-weight: 700;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      font-size: 1rem;
+    }
+
+    .btn-login-submit:hover {
+      background-color: var(--dark-espresso);
+      color: white;
+    }
+
+    /* CONTENEDOR PRINCIPAL DE BÚSQUEDA */
+    #search-wrapper {
+      padding: 40px 20px;
+    }
+
+    .main-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background-color: white;
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 15px 35px rgba(26, 18, 11, 0.05);
+      border-top: 5px solid var(--gold-accent);
+    }
+
+    .header-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--dark-espresso);
+      border-bottom: 2px solid var(--gold-accent);
+      display: inline-block;
+      margin-bottom: 15px;
+    }
+
+    /* Barra de usuario */
+    .user-bar-custom {
+      background-color: #FAF9F6;
+      border: 1px solid var(--light-border);
+      border-radius: 8px;
+      padding: 12px 20px;
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .user-info {
+      font-family: 'Lato', sans-serif;
+      color: var(--text-dark);
+      font-size: 0.95rem;
+    }
+
+    .user-name-custom {
+      font-weight: 700;
+      color: var(--mocha-brown);
+    }
+
+    .btn-logout {
+      font-family: 'Lato', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      background-color: transparent;
+      color: var(--error-red);
+      border: 1px solid var(--error-red);
+      padding: 6px 14px;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-logout:hover {
+      background-color: var(--error-red);
+      color: white;
+    }
+
+    /* Buscador */
+    .search-box {
+      border: 1px solid var(--warm-taupe) !important;
+      font-family: 'Lato', sans-serif;
+      padding: 12px 20px;
+      font-size: 1.1rem;
+      border-radius: 8px 0 0 8px !important;
+    }
+
+    .search-box:focus {
+      border-color: var(--gold-accent) !important;
+      box-shadow: 0 0 0 3px rgba(196, 164, 92, 0.2) !important;
+    }
+
+    .btn-search {
+      background: var(--mocha-brown);
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      font-weight: 600;
+      border-radius: 0 8px 8px 0;
+      transition: all 0.3s ease;
+    }
+
+    .btn-search:hover {
+      background-color: var(--dark-espresso);
+      color: white;
+    }
+
+    /* Filtros por Extensión */
+    .filter-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 35px;
+      border-bottom: 2px solid var(--light-border);
+      padding-bottom: 15px;
+    }
+
+    .filter-tab {
+      background: none;
+      border: none;
+      color: var(--text-dark);
+      padding: 8px 16px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border-radius: 20px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      opacity: 0.7;
+    }
+
+    .filter-tab:hover {
+      background-color: rgba(60, 42, 33, 0.05);
+      opacity: 1;
+    }
+
+    .filter-tab.active {
+      background-color: var(--mocha-brown);
+      color: white;
+      opacity: 1;
+      box-shadow: 0 4px 10px rgba(60, 42, 33, 0.15);
+    }
+
+    /* Tarjetas de Documentos */
+    .document-card {
+      background-color: #FCFCFA;
+      border: 1px solid var(--light-border);
+      border-radius: 12px;
+      padding: 24px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .document-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(26, 18, 11, 0.08);
+      border-color: var(--gold-accent);
+    }
+
+    .document-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: var(--dark-espresso);
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      height: 3.5rem;
+    }
+
+    .file-type-icon {
+      font-size: 1.5rem;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    .icon-pdf { color: var(--error-red); }
+    .icon-docx { color: var(--blue-accent); }
+    .icon-txt { color: var(--mocha-brown); }
+    .icon-xlsx { color: var(--success-green); }
+    .icon-other { color: var(--warm-taupe); }
+
+    .tag-pill {
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 15px;
+      background-color: var(--champagne-ivory);
+      color: var(--mocha-brown);
+      font-weight: 600;
+      margin-right: 5px;
+      margin-bottom: 5px;
+      display: inline-block;
+      border: 1px solid rgba(196, 164, 92, 0.2);
+    }
+
+    /* Caja de Metadatos */
+    .metadata-box {
+      background-color: #F5F3ED;
+      border: 1px solid var(--light-border);
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 15px;
+      margin-bottom: 15px;
+      font-size: 0.85rem;
+      max-height: 140px;
+      overflow-y: auto;
+    }
+
+    .metadata-box-title {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+      color: var(--mocha-brown);
+      border-bottom: 1px dashed var(--warm-taupe);
+      padding-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .metadata-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+
+    .metadata-key {
+      font-weight: 700;
+      color: #5C4A3C;
+      margin-right: 8px;
+      text-transform: capitalize;
+    }
+
+    .metadata-val {
+      color: var(--text-dark);
+      text-align: right;
+      word-break: break-all;
+    }
+
+    /* Botones de acción */
+    .btn-action {
+      font-family: 'Lato', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      background-color: var(--mocha-brown);
+      color: white;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 6px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-action:hover {
+      background-color: var(--dark-espresso);
+      color: white;
+    }
+
+    .btn-outline-action {
+      font-family: 'Lato', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      background-color: transparent;
+      color: var(--mocha-brown);
+      border: 1px solid var(--mocha-brown);
+      padding: 10px 14px;
+      border-radius: 6px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-outline-action:hover {
+      background-color: var(--mocha-brown);
+      color: white;
+    }
+
+    /* Modal de Visualización */
+    .modal-content-custom {
+      border-top: 5px solid var(--gold-accent) !important;
+      border-radius: 12px !important;
+      background-color: white !important;
+    }
+
+    .modal-header-custom {
+      border-bottom: 1px solid var(--light-border) !important;
+      padding: 20px 25px !important;
+    }
+
+    .modal-body-custom {
+      padding: 25px !important;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+
+    .document-content-reader {
+      font-family: 'Lato', sans-serif;
+      line-height: 1.8;
+      font-size: 1.05rem;
+      color: var(--text-dark);
+      white-space: pre-wrap;
+      background-color: #FAF9F5;
+      padding: 25px;
+      border-radius: 8px;
+      border: 1px solid var(--light-border);
+      max-height: 50vh;
+      overflow-y: auto;
+    }
+
+    .json-pretty {
+      font-family: 'Courier New', Courier, monospace;
+      background-color: var(--dark-espresso);
+      color: #A3BE8C;
+      padding: 18px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 0.9rem;
+      max-height: 45vh;
+    }
+
+    .json-key { color: #EBCB8B; font-weight: bold; }
+    .json-string { color: #A3BE8C; }
+    .json-number { color: #B48EAD; }
+    .json-boolean { color: #81A1C1; font-weight: bold; }
+
+    .footer-info {
+      text-align: center;
+      margin-top: 40px;
+      color: var(--mocha-brown);
+      font-size: 0.9rem;
+      opacity: 0.7;
+    }
+
+    .spinner-mocha {
+      color: var(--mocha-brown);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========================================== -->
+  <!-- VISTA DE INICIAR SESIÓN (LOGIN)            -->
+  <!-- ========================================== -->
+  <div id="login-wrapper">
+    <div class="login-card">
+      <h3 class="login-logo">QualityDoc</h3>
+      <p class="login-subtitle">Portal de Consulta & Indexación</p>
+      
+      <!-- Mensaje de Error -->
+      <div id="login-error" class="alert alert-danger d-none shadow-sm" role="alert"></div>
+
+      <form id="login-form">
+        <div class="mb-3">
+          <label for="login-username" class="form-label-custom">Usuario / Correo</label>
+          <input type="text" id="login-username" class="form-control input-custom" placeholder="ejemplo@correo.com" required>
+        </div>
+        <div class="mb-4">
+          <label for="login-password" class="form-label-custom">Contraseña</label>
+          <input type="password" id="login-password" class="form-control input-custom" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn-login-submit w-100" id="login-btn">
+          <span id="login-btn-text">Entrar</span>
+          <span id="login-btn-spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- VISTA DEL PORTAL DE BÚSQUEDA               -->
+  <!-- ========================================== -->
+  <div id="search-wrapper" class="d-none">
+    <div class="container py-2">
+      <div class="main-container">
+        
+        <!-- Barra superior de usuario -->
+        <div class="user-bar-custom">
+          <div class="user-info">
+            <i class="bi bi-person-circle me-1 text-muted"></i> 
+            Sesión iniciada como: <span class="user-name-custom" id="user-display-name">Usuario</span> 
+            <span class="badge bg-secondary ms-2" id="user-display-role">Rol</span>
+            <span class="badge bg-dark ms-2" id="user-display-company">Empresa</span>
+          </div>
+          <button class="btn-logout" id="logout-btn">
+            <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+          </button>
+        </div>
+
+        <!-- Encabezado -->
+        <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
+          <div>
+            <span class="header-logo">QualityDoc Portal</span>
+            <p class="text-muted mt-n2">Microservicio de Indexación y Búsqueda Avanzada de Documentos</p>
+          </div>
+          <div class="mb-3">
+            <span class="badge bg-success px-3 py-2" id="db-status">
+              <i class="bi bi-database-check me-1"></i> MongoDB Conectado
+            </span>
+          </div>
+        </div>
+
+        <!-- Buscador -->
+        <form id="search-form" class="mb-4">
+          <div class="input-group shadow-sm">
+            <input type="text" id="search-input" class="form-control search-box" placeholder="Busca palabras clave, títulos, departamentos o contenidos..." aria-label="Buscador de documentos">
+            <button type="submit" class="btn btn-search">
+              <i class="bi bi-search me-2"></i> Buscar
+            </button>
+          </div>
+        </form>
+
+        <!-- Filtros por Extensión -->
+        <div class="filter-tabs" id="extension-filters">
+          <button class="filter-tab active" data-extension="">
+            <i class="bi bi-collection-fill"></i> Todos
+          </button>
+          <button class="filter-tab" data-extension="pdf">
+            <i class="bi bi-file-earmark-pdf-fill icon-pdf"></i> PDF
+          </button>
+          <button class="filter-tab" data-extension="docx">
+            <i class="bi bi-file-earmark-word-fill icon-docx"></i> DOCX
+          </button>
+          <button class="filter-tab" data-extension="xlsx">
+            <i class="bi bi-file-earmark-excel-fill icon-xlsx"></i> Excel (XLSX)
+          </button>
+          <button class="filter-tab" data-extension="txt">
+            <i class="bi bi-file-earmark-text-fill icon-txt"></i> TXT
+          </button>
+          <button class="filter-tab" data-extension="other">
+            <i class="bi bi-file-earmark-code-fill icon-other"></i> Otros
+          </button>
+        </div>
+
+        <!-- Contador de Resultados y Cargador -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h3 class="fs-4 mb-0" id="results-heading">Documentos Recientes</h3>
+          <span class="badge bg-secondary px-3 py-2" id="results-count">0 documentos</span>
+        </div>
+
+        <div id="loader" class="text-center py-5 d-none">
+          <div class="spinner-border spinner-mocha" style="width: 3rem; height: 3rem;" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
+          <p class="text-muted mt-3">Buscando documentos en el índice de texto...</p>
+        </div>
+
+        <!-- Grid de Resultados -->
+        <div class="row g-4" id="results-grid">
+          <!-- Las tarjetas se cargarán aquí dinámicamente -->
+        </div>
+
+        <!-- Footer -->
+        <div class="footer-info">
+          <hr>
+          <p>Integrado con el portal de gestión en PHP/Postgres y el módulo de ingesta en .NET Core</p>
+          <p>&copy; 2026 QualityDoc. Todos los derechos reservados.</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL VISOR DE DOCUMENTO -->
+  <div class="modal fade" id="viewerModal" tabindex="-1" aria-labelledby="viewerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content modal-content-custom">
+        <div class="modal-header modal-header-custom">
+          <h4 class="modal-title fs-5" id="viewerModalLabel">Visualizador de Documento</h4>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body modal-body-custom">
+          <div class="mb-3 d-flex flex-wrap gap-2 align-items-center" id="viewer-meta-badges">
+            <!-- Badges del visor -->
+          </div>
+          <div class="document-content-reader" id="viewer-content">
+            <!-- Contenido del texto del documento -->
+          </div>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-outline-action" data-bs-dismiss="modal">Cerrar Visor</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL METADATOS COMPLETOS -->
+  <div class="modal fade" id="metadataModal" tabindex="-1" aria-labelledby="metadataModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content modal-content-custom">
+        <div class="modal-header modal-header-custom">
+          <h4 class="modal-title fs-5" id="metadataModalLabel">Metadatos del Documento</h4>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body modal-body-custom">
+          <p class="text-muted">Esquema dinámico indexado en MongoDB (Mongoose Schema.Types.Mixed):</p>
+          <pre class="json-pretty" id="metadata-json"></pre>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-outline-action" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 Bundle JS (incluye Popper) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // Variables globales
+    let currentFilterExtension = '';
+    let searchQuery = '';
+    let documentsList = [];
+
+    // Modales Bootstrap
+    const viewerModal = new bootstrap.Modal(document.getElementById('viewerModal'));
+    const metadataModal = new bootstrap.Modal(document.getElementById('metadataModal'));
+
+    // Elementos DOM
+    const loginWrapper = document.getElementById('login-wrapper');
+    const searchWrapper = document.getElementById('search-wrapper');
+    const loginForm = document.getElementById('login-form');
+    const loginUsername = document.getElementById('login-username');
+    const loginPassword = document.getElementById('login-password');
+    const loginError = document.getElementById('login-error');
+    const loginBtnText = document.getElementById('login-btn-text');
+    const loginBtnSpinner = document.getElementById('login-btn-spinner');
+    
+    const userDisplayName = document.getElementById('user-display-name');
+    const userDisplayRole = document.getElementById('user-display-role');
+    const logoutBtn = document.getElementById('logout-btn');
+
+    const searchForm = document.getElementById('search-form');
+    const searchInput = document.getElementById('search-input');
+    const extensionFilters = document.getElementById('extension-filters');
+    const resultsGrid = document.getElementById('results-grid');
+    const resultsHeading = document.getElementById('results-heading');
+    const resultsCount = document.getElementById('results-count');
+    const loader = document.getElementById('loader');
+
+    // Inicializar página
+    document.addEventListener('DOMContentLoaded', () => {
+      checkAuth();
+      setupEvents();
+    });
+
+    // Control de Autenticación
+    function checkAuth() {
+      const savedUser = sessionStorage.getItem('qualitydoc_user');
+      if (savedUser) {
+        const userObj = JSON.parse(savedUser);
+        userDisplayName.textContent = userObj.nombre || 'Usuario';
+        userDisplayRole.textContent = userObj.rol || 'Rol';
+        
+        // Mostrar empresa
+        const companyBadge = document.getElementById('user-display-company');
+        if (companyBadge) {
+          companyBadge.textContent = `Empresa: ${userObj.empresaid || 1}`;
+        }
+        
+        loginWrapper.classList.add('d-none');
+        searchWrapper.classList.remove('d-none');
+        
+        // Cargar los documentos tras loguearse
+        fetchDocuments();
+      } else {
+        loginWrapper.classList.remove('d-none');
+        searchWrapper.classList.add('d-none');
+      }
+    }
+
+    // Eventos de interfaz
+    function setupEvents() {
+      // Formulario de login
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const usuario = loginUsername.value;
+        const password = loginPassword.value;
+
+        // Mostrar cargando
+        loginError.classList.add('d-none');
+        loginBtnText.classList.add('d-none');
+        loginBtnSpinner.classList.remove('d-none');
+        document.getElementById('login-btn').disabled = true;
+
+        try {
+          const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ usuario, password })
+          });
+
+          const resData = await response.json();
+
+          if (response.ok && resData.success) {
+            // Guardar sesión y verificar
+            sessionStorage.setItem('qualitydoc_user', JSON.stringify(resData.user));
+            loginUsername.value = '';
+            loginPassword.value = '';
+            checkAuth();
+          } else {
+            loginError.textContent = resData.error || 'Credenciales incorrectas.';
+            loginError.classList.remove('d-none');
+          }
+        } catch (err) {
+          console.error(err);
+          loginError.textContent = 'Error al conectar con el servidor de autenticación.';
+          loginError.classList.remove('d-none');
+        } finally {
+          loginBtnText.classList.remove('d-none');
+          loginBtnSpinner.classList.add('d-none');
+          document.getElementById('login-btn').disabled = false;
+        }
+      });
+
+      // Cerrar Sesión
+      logoutBtn.addEventListener('click', () => {
+        sessionStorage.removeItem('qualitydoc_user');
+        checkAuth();
+      });
+
+      // Búsqueda
+      searchForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        searchQuery = searchInput.value.trim();
+        fetchDocuments();
+      });
+
+      // Filtros de extensión
+      extensionFilters.addEventListener('click', (e) => {
+        const targetTab = e.target.closest('.filter-tab');
+        if (!targetTab) return;
+
+        // Cambiar pestaña activa
+        document.querySelectorAll('.filter-tab').forEach(tab => tab.classList.remove('active'));
+        targetTab.classList.add('active');
+
+        // Filtrar y consultar
+        currentFilterExtension = targetTab.dataset.extension;
+        fetchDocuments();
+      });
+    }
+
+    // Consultar API de documentos
+    async function fetchDocuments() {
+      showLoader(true);
+      resultsGrid.innerHTML = '';
+
+      try {
+        const savedUser = sessionStorage.getItem('qualitydoc_user');
+        const userObj = savedUser ? JSON.parse(savedUser) : { empresaid: 1 };
+
+        let url = `/api/documents/search?`;
+        const params = new URLSearchParams();
+        if (searchQuery) {
+          params.append('q', searchQuery);
+        }
+        if (currentFilterExtension) {
+          if (currentFilterExtension !== 'other') {
+            params.append('extension', currentFilterExtension);
+          } else {
+            params.append('extension', 'other');
+          }
+        }
+        
+        // Filtrar por empresa
+        params.append('empresaid', userObj.empresaid || 1);
+        
+        url += params.toString();
+
+        const response = await fetch(url);
+        const resData = await response.json();
+
+        if (resData.success) {
+          documentsList = resData.data;
+          
+          if (currentFilterExtension === 'other') {
+            const standardExts = ['pdf', 'docx', 'txt', 'xlsx'];
+            documentsList = documentsList.filter(doc => !standardExts.includes(doc.fileExtension.toLowerCase()));
+          }
+
+          renderDocuments(documentsList);
+        } else {
+          showErrorMsg(resData.error || 'Ocurrió un error al buscar documentos.');
+        }
+      } catch (err) {
+        console.error(err);
+        showErrorMsg('No se pudo conectar con el microservicio. Asegúrate de que el backend y MongoDB estén en ejecución.');
+      } finally {
+        showLoader(false);
+      }
+    }
+
+    // Mostrar Loader
+    function showLoader(show) {
+      if (show) {
+        loader.classList.remove('d-none');
+        resultsGrid.classList.add('d-none');
+      } else {
+        loader.classList.add('d-none');
+        resultsGrid.classList.remove('d-none');
+      }
+    }
+
+    // Mostrar mensaje de error
+    function showErrorMsg(msg) {
+      resultsGrid.innerHTML = `
+        <div class="col-12">
+          <div class="alert alert-danger shadow-sm border-start border-4 border-danger" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+            <strong>Error:</strong> ${msg}
+          </div>
+        </div>
+      `;
+      resultsCount.textContent = '0 documentos';
+    }
+
+    // Renderizar tarjetas de documentos
+    function renderDocuments(docs) {
+      if (searchQuery) {
+        resultsHeading.textContent = `Resultados para "${searchQuery}"`;
+      } else {
+        resultsHeading.textContent = currentFilterExtension 
+          ? `Documentos (${currentFilterExtension.toUpperCase()})` 
+          : 'Documentos Recientes';
+      }
+      resultsCount.textContent = `${docs.length} ${docs.length === 1 ? 'documento' : 'documentos'}`;
+
+      if (docs.length === 0) {
+        resultsGrid.innerHTML = `
+          <div class="col-12">
+            <div class="text-center py-5 bg-light rounded-3 border">
+              <i class="bi bi-file-earmark-excel fs-1 text-muted mb-3 d-block"></i>
+              <h4 class="text-muted fw-bold">No se encontraron documentos</h4>
+              <p class="text-muted mb-0">Intenta buscar con otros términos o cambia la extensión en los filtros.</p>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      docs.forEach((doc, idx) => {
+        const col = document.createElement('div');
+        col.className = 'col-md-6 col-lg-4';
+        
+        const ext = (doc.fileExtension || '').toLowerCase();
+        let iconClass = 'bi-file-earmark-code-fill icon-other';
+        let extLabel = ext.toUpperCase();
+
+        if (ext === 'pdf') iconClass = 'bi-file-earmark-pdf-fill icon-pdf';
+        else if (ext === 'docx' || ext === 'doc') iconClass = 'bi-file-earmark-word-fill icon-docx';
+        else if (ext === 'txt') iconClass = 'bi-file-earmark-text-fill icon-txt';
+        else if (ext === 'xlsx' || ext === 'xls') iconClass = 'bi-file-earmark-excel-fill icon-xlsx';
+
+        let tagsHtml = '';
+        if (Array.isArray(doc.tags) && doc.tags.length > 0) {
+          tagsHtml = doc.tags.map(t => `<span class="tag-pill">${escapeHtml(t)}</span>`).join('');
+        }
+
+        let metadataBoxHtml = '';
+        const metaEntries = Object.entries(doc.metadata || {});
+        if (metaEntries.length > 0) {
+          metadataBoxHtml = `
+            <div class="metadata-box">
+              <div class="metadata-box-title">
+                <span>Metadatos</span>
+                <i class="bi bi-info-circle text-muted" style="font-size: 0.8rem;"></i>
+              </div>
+          `;
+          metaEntries.forEach(([key, val]) => {
+            let displayVal = val;
+            if (typeof val === 'boolean') {
+              displayVal = val ? 'Sí' : 'No';
+            } else if (typeof val === 'object') {
+              displayVal = JSON.stringify(val);
+            }
+            metadataBoxHtml += `
+              <div class="metadata-item">
+                <span class="metadata-key">${escapeHtml(key)}:</span>
+                <span class="metadata-val text-truncate" title="${escapeHtml(String(displayVal))}">${escapeHtml(String(displayVal))}</span>
+              </div>
+            `;
+          });
+          metadataBoxHtml += '</div>';
+        } else {
+          metadataBoxHtml = `
+            <div class="metadata-box text-center text-muted py-3">
+              <span class="fst-italic" style="font-size: 0.8rem;">Sin metadatos específicos</span>
+            </div>
+          `;
+        }
+
+        col.innerHTML = `
+          <div class="document-card shadow-sm">
+            <div>
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="badge bg-light text-dark border d-flex align-items-center gap-1">
+                  <i class="bi ${iconClass}"></i> ${extLabel}
+                </span>
+                <small class="text-muted" style="font-size: 0.75rem;">
+                  ${formatDate(doc.createdAt)}
+                </small>
+              </div>
+              <h4 class="document-title" title="${escapeHtml(doc.title)}">
+                ${escapeHtml(doc.title)}
+              </h4>
+              <div class="mb-2">
+                ${tagsHtml}
+              </div>
+              ${metadataBoxHtml}
+            </div>
+            
+            <div class="row g-2 mt-2">
+              <div class="col-6">
+                <button class="btn btn-action w-100" onclick="viewDocument(${idx})">
+                  <i class="bi bi-eye-fill"></i> Ver Texto
+                </button>
+              </div>
+              <div class="col-6">
+                <button class="btn btn-outline-action w-100" onclick="viewMetadata(${idx})">
+                  <i class="bi bi-braces"></i> JSON Meta
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+        resultsGrid.appendChild(col);
+      });
+    }
+
+    // Abrir visor de documento
+    function viewDocument(index) {
+      const doc = documentsList[index];
+      if (!doc) return;
+
+      document.getElementById('viewerModalLabel').textContent = doc.title;
+      
+      const badgesContainer = document.getElementById('viewer-meta-badges');
+      badgesContainer.innerHTML = `
+        <span class="badge bg-secondary"><i class="bi bi-file-earmark"></i> Extensión: ${doc.fileExtension.toUpperCase()}</span>
+        <span class="badge bg-dark"><i class="bi bi-calendar3"></i> Indexado: ${formatDate(doc.createdAt)}</span>
+      `;
+
+      if (Array.isArray(doc.tags)) {
+        doc.tags.forEach(t => {
+          badgesContainer.innerHTML += `<span class="badge bg-light text-dark border">${escapeHtml(t)}</span>`;
+        });
+      }
+
+      document.getElementById('viewer-content').textContent = doc.textContent || 'El documento no contiene texto indexado.';
+      viewerModal.show();
+    }
+
+    // Abrir modal de metadatos completos
+    function viewMetadata(index) {
+      const doc = documentsList[index];
+      if (!doc) return;
+
+      document.getElementById('metadataModalLabel').textContent = `Metadatos: ${doc.title}`;
+      
+      const jsonContainer = document.getElementById('metadata-json');
+      const cleanMeta = {
+        _id: doc._id,
+        title: doc.title,
+        fileExtension: doc.fileExtension,
+        metadata: doc.metadata,
+        tags: doc.tags,
+        createdAt: doc.createdAt,
+        updatedAt: doc.updatedAt
+      };
+      
+      jsonContainer.innerHTML = syntaxHighlight(cleanMeta);
+      metadataModal.show();
+    }
+
+    // Formatear Fecha
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('es-MX', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    // Escapar caracteres HTML
+    function escapeHtml(unsafe) {
+      return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // Resaltado de sintaxis JSON
+    function syntaxHighlight(json) {
+      if (typeof json != 'string') {
+        json = JSON.stringify(json, undefined, 2);
+      }
+      json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g, function (match) {
+        let cls = 'json-number';
+        if (/^"/.test(match)) {
+          if (/:$/.test(match)) {
+            return '<span class="json-key">' + match.replace(/:$/, '') + '</span>:';
+          } else {
+            cls = 'json-string';
+          }
+        } else if (/true|false/.test(match)) {
+          cls = 'json-boolean';
+        } else if (/null/.test(match)) {
+          cls = 'json-null';
+        }
+        return '<span class="' + cls + '">' + match + '</span>';
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Lato:wght@400;700&family=Playfair+Display:ital,wght@0,500;0,700;1,400&display=swap');
+
+:root {
+    --dark-espresso: #1A120B;
+    --mocha-brown: #3C2A21;
+    --warm-taupe: #D5CEB8;
+    --champagne-ivory: #F4F0E6;
+    --gold-accent: #C4A45C;
+    --text-dark: #2C241B;
+    --error-red: #8B2E2E;
+    --light-border: #E8E5DF;
+}
+
+body {
+    font-family: 'Lato', sans-serif;
+    background-color: var(--champagne-ivory);
+    color: var(--text-dark);
+    margin: 0;
+    padding: 30px 20px;
+}
+
+h1 {
+    font-family: 'Playfair Display', serif;
+    color: var(--dark-espresso);
+    margin-bottom: 5px;
+}
+
+.contenedor {
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 15px 35px rgba(26, 18, 11, 0.05);
+    border-top: 4px solid var(--gold-accent);
+}
+
+/* Re-estilizando botones genericos para buscar/ver/descargar */
+button, .btn-action {
+    background: var(--mocha-brown);
+    color: white;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    background-color: var(--dark-espresso);
+}
+
+/* Buscador */
+input[type="text"] {
+    border: 1px solid var(--warm-taupe) !important;
+    font-family: 'Lato', sans-serif;
+}
+input[type="text"]:focus {
+    border-color: var(--gold-accent) !important;
+    box-shadow: 0 0 0 3px rgba(196, 164, 92, 0.2) !important;
+}
+
+/* Iconos de la tabla */
+.bi-eye-fill, .bi-download, .bi-pencil-fill, .bi-bell-fill {
+    color: var(--mocha-brown);
+    transition: color 0.2s;
+}
+
+.bi-eye-fill:hover, .bi-download:hover {
+    color: var(--gold-accent) !important;
+}
+
+.bi-file-earmark-pdf-fill {
+    color: var(--error-red) !important; /* Mantener rojo para el PDF */
+}
+
+/* Modificando los enlaces directos en el HTML desde el CSS (Sobrescribiendo estilos en línea si los hay) */
+table th {
+    color: var(--mocha-brown) !important;
+    border-bottom: 2px solid var(--warm-taupe) !important;
+    font-family: 'Playfair Display', serif;
+    text-transform: uppercase;
+}
+
+table td {
+    color: var(--text-dark) !important;
+    border-bottom: 1px solid var(--light-border) !important;
+}
+
+/* Pestañas */
+.pestañas a {
+    color: var(--warm-taupe);
+    transition: all 0.3s;
+}
+
+.pestañas a:hover {
+    color: var(--mocha-brown) !important;
+}
+
+/* Sobrescribir el borde de la pestaña activa que pusimos en index.php */
+a[style*="border-bottom: 3px solid #1a73e8"] {
+    border-bottom-color: var(--gold-accent) !important;
+    color: var(--mocha-brown) !important;
+}
+a[style*="color: #1a73e8"] {
+    color: var(--mocha-brown) !important;
+}
+
+/* Barra superior de usuario */
+.user-bar {
+    background-color: #FAFAF8 !important;
+    border: 1px solid var(--light-border);
+}
+.user-name {
+    color: var(--mocha-brown) !important;
+}
+
+/* Modal de Emergencia */
+#modalEmergencia > div {
+    border-top: 4px solid var(--error-red);
+    background-color: white;
+}
+#modalEmergencia button[type="submit"] {
+    background-color: var(--error-red) !important;
+}

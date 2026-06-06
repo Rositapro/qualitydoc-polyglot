@@ -1,0 +1,110 @@
+version: '3.8'
+
+services:
+  # ==========================================
+  # MÓDULO DE CONSULTA PÚBLICA (PHP & POSTGRES)
+  # ==========================================
+  
+  # Base de Datos PostgreSQL
+  db-postgres:
+    image: postgres:16
+    container_name: db-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: Rosalinda
+      POSTGRES_PASSWORD: Rosa123
+      POSTGRES_DB: gestionconsulta
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ../db/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - qualitydoc-net
+
+  # Servidor Web PHP
+  web-php:
+    build:
+      context: ../src/php-app
+      dockerfile: ../../docker/php.Dockerfile
+    container_name: web-php
+    ports:
+      - "8080:80"
+    volumes:
+      - ../src/php-app:/var/www/html
+    depends_on:
+      - db-postgres
+    networks:
+      - qualitydoc-net
+
+  # ==========================================
+  # MÓDULO DE BÚSQUEDA INTELIGENTE (NODE & MONGO)
+  # ==========================================
+
+  # Base de Datos NoSQL MongoDB
+  db-mongodb:
+    image: mongo:latest
+    container_name: db-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+      - ../db/mongodb/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js
+    networks:
+      - qualitydoc-net
+
+  # Microservicio de Búsqueda Node.js (TypeScript)
+  search-service:
+    build:
+      context: ../src/node-service
+      dockerfile: ../../docker/node.Dockerfile
+    container_name: search-service
+    ports:
+      - "3000:3000"
+    environment:
+      - MONGODB_URI=mongodb://db-mongodb:27017/qualitydoc
+      - NODE_ENV=production
+    depends_on:
+      - db-mongodb
+    networks:
+      - qualitydoc-net
+
+  # ==========================================
+  # TEMPLATE PARA EL MÓDULO CENTRAL (.NET & SQL SERVER)
+  # (Odeth: Descomenta esta sección y ajusta las rutas cuando integres tu parte)
+  # ==========================================
+  #
+  # db-sqlserver:
+  #   image: mcr.microsoft.com/mssql/server:2022-latest
+  #   container_name: db-sqlserver
+  #   ports:
+  #     - "1433:1433"
+  #   environment:
+  #     - ACCEPT_EULA=Y
+  #     - MSSQL_SA_PASSWORD=TuPasswordSeguro123!
+  #   volumes:
+  #     - mssql_data:/var/opt/mssql/data
+  #     # Script para crear tus tablas de SQL Server iniciales
+  #     - ../db/sqlserver/init.sql:/usr/config/init.sql
+  #   networks:
+  #     - qualitydoc-net
+  #
+  # admin-dotnet:
+  #   build:
+  #     context: ../src/dotnet-core
+  #     dockerfile: ../../docker/dotnet.Dockerfile
+  #   container_name: admin-dotnet
+  #   ports:
+  #     - "5000:80"
+  #   depends_on:
+  #     - db-sqlserver
+  #   networks:
+  #     - qualitydoc-net
+
+networks:
+  qualitydoc-net:
+    driver: bridge
+
+volumes:
+  pg_data:
+  mongo_data:
+  # mssql_data:
