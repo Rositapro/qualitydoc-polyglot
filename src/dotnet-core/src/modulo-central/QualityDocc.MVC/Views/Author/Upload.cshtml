@@ -1,0 +1,321 @@
+@model QualityDocc.Domain.Entities.Document
+
+@{
+    Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+    /* Fondo general para igualar el Home */
+    .dashboard-bg {
+        background-color: #ffffff;
+        min-height: 100vh;
+        padding: 2rem;
+        color: #2b2b2b;
+    }
+
+    /* Tarjeta del formulario estilo Home */
+    .upload-card {
+        background-color: #ffffff;
+        border-radius: 20px;
+        padding: 2.5rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .upload-title {
+        font-weight: 700;
+        color: #333333;
+        margin-bottom: 2rem;
+    }
+
+    .custom-label {
+        font-weight: 600;
+        color: #534B31; /* Color profundo para las etiquetas */
+        font-size: 0.95rem;
+        margin-bottom: 0.4rem;
+    }
+
+    /* Estilización de los inputs */
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1px solid #E8D1A7; /* Borde beige claro */
+        padding: 0.6rem 1rem;
+        color: #333333;
+        background-color: #ffffff;
+    }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #9D9167;
+            box-shadow: 0 0 0 0.2rem rgba(157, 145, 103, 0.25);
+        }
+
+    /* Zona de arrastrar y soltar (INTACTA) */
+    .drop-zone {
+        width: 100%;
+        height: 180px;
+        border: 2px dashed #9D9167; /* Borde oliva */
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: #fcfcfb;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+        .drop-zone:hover {
+            border-color: #734F31; /* Hover color café tierra */
+            background-color: #F8F4EC; /* Tinte súper claro del beige */
+        }
+
+        .drop-zone i {
+            font-size: 50px;
+            color: #9D9167;
+            margin-bottom: 10px;
+        }
+
+    .drop-zone-text {
+        color: #534B31;
+        font-weight: 500;
+    }
+
+    /* Botones de acción */
+    .btn-save-draft {
+        background-color: #9D9167;
+        color: white;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: background-color 0.2s;
+        border: none;
+    }
+
+        .btn-save-draft:hover {
+            background-color: #7A704F;
+            color: white;
+        }
+
+    .btn-submit-auth {
+        background-color: #534B31;
+        color: white;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: background-color 0.2s;
+        border: none;
+    }
+
+        .btn-submit-auth:hover {
+            background-color: #3B3522;
+            color: white;
+        }
+
+    /* Botones de la versión (+ y -) */
+    .btn-version {
+        background-color: #E8D1A7;
+        color: #534B31;
+        border: none;
+        font-weight: bold;
+        transition: background-color 0.2s;
+    }
+
+        .btn-version:hover {
+            background-color: #D6BD8E;
+        }
+
+    .version-input {
+        font-weight: bold;
+        text-align: center;
+        border-top: 1px solid #E8D1A7;
+        border-bottom: 1px solid #E8D1A7;
+    }
+</style>
+
+<div class="dashboard-bg">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="upload-card">
+                    <h2 class="upload-title"><i class="bi bi-cloud-arrow-up me-2" style="color: #9D9167;"></i>Subir Documento</h2>
+
+                    <form id="uploadForm" asp-action="Upload" method="post" enctype="multipart/form-data">
+
+                        <input type="hidden" asp-for="Id" />
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-4">
+                            <label class="form-label custom-label">Título</label>
+                            <input asp-for="Title" class="form-control" placeholder="Nombre del documento..." required />
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-8">
+                                <label class="form-label custom-label">Norma ISO</label>
+                                <select asp-for="IsoId" class="form-select" asp-items="@(new SelectList(ViewBag.Isos, "Id", "Name"))" required>
+                                    <option value="">-- Seleccione norma ISO --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mt-3 mt-md-0">
+                                <label class="form-label custom-label">Versión</label>
+                                <div class="input-group">
+                                    <button type="button" class="btn btn-version" onclick="changeVersion(-0.1)">-</button>
+                                    <input type="text" id="versionDisplay" name="VersionNumber" value="@(((double)(ViewBag.SuggestedVersion ?? 0.1)).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture))" class="form-control version-input" readonly />
+                                    <button type="button" class="btn btn-version" onclick="changeVersion(0.1)">+</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label custom-label">Archivo (PDF o DOCX)</label>
+                            <div class="drop-zone" onclick="document.getElementById('fileInput').click()">
+                                <i class="fas fa-file-upload"></i>
+                                <p class="mt-2 drop-zone-text">Arrastra tus archivos aquí o haz clic para buscar</p>
+                                <div id="fileInfo" class="mt-2" style="color: #734F31; font-weight: bold;"></div>
+                            </div>
+                            <input type="file" id="fileInput" name="archivo" class="d-none" accept=".pdf,.docx" required onchange="showFileName(this)">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label custom-label">Descripción</label>
+                            <textarea asp-for="Description" class="form-control" rows="3" placeholder="Añade una breve descripción del documento..."></textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label custom-label">Empresa</label>
+                            <input type="text" class="form-control bg-light" value="@ViewBag.CompanyName" readonly disabled />
+                            <input type="hidden" name="CompanyId" value="@ViewBag.CompanyId" />
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label custom-label">¿Qué cambios realizaste en esta versión? (ChangeLog)</label>
+                            <textarea name="ChangeLog" class="form-control" rows="2" placeholder="Ej: Se actualizó el índice y se corrigieron referencias..." required></textarea>
+                        </div>
+
+                        <div class="row g-3 mt-2">
+                            <div class="col-12">
+                                <button type="submit" id="btnSubmitAuth" name="action" value="submit" class="btn btn-submit-auth w-100 py-3 fs-5">
+                                    <i class="bi bi-send-fill me-2"></i> Enviar al Autorizador
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="progressModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 15px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <div class="modal-body text-center p-5">
+                <i class="bi bi-cloud-arrow-up mb-3" id="modalIcon" style="font-size: 3.5rem; color: #9D9167;"></i>
+                <h4 id="modalText" style="color: #534B31; font-weight: 700; margin-bottom: 1.5rem;">Preparando documento...</h4>
+
+                <div class="progress" style="height: 25px; border-radius: 12px; background-color: #F8F4EC;">
+                    <div id="dynamicProgressBar"
+                         class="progress-bar progress-bar-striped progress-bar-animated"
+                         role="progressbar"
+                         style="width: 0%; background-color: #9D9167; font-weight: bold; font-size: 1rem;"
+                         aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                        0%
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showFileName(input) {
+        if (input.files.length > 0) {
+            document.getElementById('fileInfo').innerHTML = "<i class='fas fa-check-circle me-1'></i> Seleccionado: " + input.files[0].name;
+        }
+    }
+
+    function changeVersion(amount) {
+        let input = document.getElementById('versionDisplay');
+        let currentVal = parseFloat(input.value);
+        let newVal = Math.round((currentVal + amount) * 10) / 10;
+
+        if (newVal >= 0.1) {
+            input.value = newVal.toFixed(1);
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        // Buscamos el botón por su ID. ¡Asegúrate de que tu botón tenga id="btnSubmitAuth"!
+        const submitAuthBtn = document.getElementById('btnSubmitAuth');
+
+        if (submitAuthBtn) {
+            submitAuthBtn.addEventListener('click', function (e) {
+                const form = document.getElementById('uploadForm');
+                const fileInput = document.getElementById('fileInput');
+
+                // 1. Validamos manualmente el archivo oculto primero
+                if (fileInput.files.length === 0) {
+                    e.preventDefault();
+                    alert("⚠️ Por favor, selecciona un documento (PDF o DOCX) en la zona de carga.");
+                    return; // Detenemos el proceso aquí
+                }
+
+                // 2. Validamos el resto de los campos visibles (Título, Categoría, etc.)
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
+
+                // Si todo está lleno, detenemos el envío brusco para mostrar la animación
+                e.preventDefault();
+                console.log("Formulario válido. Iniciando animación...");
+
+                try {
+                    // 3. Insertamos la acción que C# necesita
+                    let hiddenAction = document.createElement('input');
+                    hiddenAction.type = 'hidden';
+                    hiddenAction.name = 'action';
+                    hiddenAction.value = 'submit';
+                    form.appendChild(hiddenAction);
+
+                    // 4. Invocamos la ventana modal de Bootstrap
+                    let progressModal = new bootstrap.Modal(document.getElementById('progressModal'));
+                    progressModal.show();
+
+                    // 5. Animación de la barra de progreso
+                    let bar = document.getElementById('dynamicProgressBar');
+                    let text = document.getElementById('modalText');
+                    let icon = document.getElementById('modalIcon');
+                    let width = 0;
+
+                    let interval = setInterval(function () {
+                        width += 4;
+                        bar.style.width = width + '%';
+                        bar.setAttribute('aria-valuenow', width);
+                        bar.innerText = width + '%';
+
+                        if (width >= 100) {
+                            clearInterval(interval);
+
+                            text.innerText = "¡Enviado al revisor!";
+                            text.style.color = "#7A704F";
+                            bar.classList.remove('progress-bar-animated', 'progress-bar-striped');
+                            bar.style.backgroundColor = "#534B31";
+                            icon.className = "bi bi-check-circle-fill mb-3";
+                            icon.style.color = "#534B31";
+
+                            // 6. Enviamos el formulario al servidor después de 1 segundo
+                            setTimeout(() => {
+                                form.submit();
+                            }, 1000);
+                        }
+                    }, 80);
+                } catch (error) {
+                    console.error("Error al cargar la ventana modal de Bootstrap:", error);
+                    // Si falla el diseño de la ventana, forzamos el envío de todos modos para que no te quedes atascada
+                    form.submit();
+                }
+            });
+        } else {
+            console.error("El botón no fue encontrado en el DOM. Revisa que tenga el id correcto.");
+        }
+    });
+</script>

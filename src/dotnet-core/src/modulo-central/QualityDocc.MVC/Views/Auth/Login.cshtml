@@ -1,0 +1,427 @@
+@model QualityDocc.MVC.Models.DTOs.LoginDto
+@{
+    Layout = null; // No carga la barra ni el menú lateral aquí
+    ViewData["Title"] = "Acceso Seguro - QualityDoc";
+}
+
+<!DOCTYPE html>
+<html lang="es" class="h-100">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Lato:wght@400;700&family=Playfair+Display:ital,wght@0,500;0,700;1,400&display=swap" rel="stylesheet">
+
+    <style>
+            /* Paleta de Colores Café, Moca y Marfil Champaña */
+            :root {
+                --dark-espresso: #1A130E; /* Fondo base ultra oscuro */
+                --card-brown-light: #4A372C; /* Cuadro principal café moca refinado */
+                --champagne-ivory: #F5EBE1; /* Tono marfil premium para letras y contrastes */
+                --muted-champagne: #C2B3A5; /* Texto secundario atenuado elegante */
+                --input-bg: rgba(255, 255, 255, 0.06);
+                --border-luxe: rgba(245, 235, 225, 0.25);
+            }
+
+            body {
+                /* Fondo de la landing page (libros/documentos) */
+                background-image: url('https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?q=80&w=1920&auto=format&fit=crop');
+                background-size: cover;
+                background-position: center;
+                background-attachment: fixed;
+                font-family: 'Lato', sans-serif;
+                color: var(--champagne-ivory);
+                position: relative;
+                overflow-x: hidden;
+                background-color: var(--dark-espresso);
+            }
+
+                /* Capa de filtro café sobre la imagen general */
+                body::before {
+                    content: '';
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(36, 26, 19, 0.78);
+                    z-index: 0;
+                }
+
+            .page-content {
+                position: relative;
+                z-index: 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 100vh;
+                width: 100%;
+            }
+
+            /* Encabezado limpio sin menús genéricos */
+            .site-header {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 2rem 3rem;
+                z-index: 2;
+            }
+
+            .logo-text {
+                font-family: 'Cinzel Decorative', serif;
+                font-weight: 700;
+                font-size: 2.8rem;
+                color: var(--champagne-ivory);
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+                margin: 0;
+            }
+
+            .btn-outline-luxe {
+                border: 2px solid var(--champagne-ivory) !important;
+                color: var(--champagne-ivory) !important;
+                font-family: 'Playfair Display', serif;
+                font-weight: 600;
+                font-size: 1rem;
+                letter-spacing: 0.5px;
+                transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+                background: transparent;
+            }
+
+                .btn-outline-luxe:hover {
+                    background-color: var(--card-brown-light) !important;
+                    border-color: var(--champagne-ivory) !important;
+                    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+                    transform: translateY(-2px);
+                }
+
+            /* Sección de bienvenida principal (Hero) */
+            .hero-section {
+                max-width: 800px;
+                margin-top: 4rem;
+            }
+
+            .hero-title {
+                font-family: 'Playfair Display', serif;
+                font-size: 3.8rem;
+                font-weight: 700;
+                color: var(--champagne-ivory);
+                line-height: 1.2;
+                text-shadow: 2px 4px 10px rgba(0,0,0,0.6);
+            }
+
+            .hero-subtitle {
+                font-family: 'Playfair Display', serif;
+                font-style: italic;
+                color: var(--muted-champagne);
+                font-size: 1.3rem;
+                margin-bottom: 3rem;
+            }
+
+            /* Contenedor del Login Desplegable */
+            .login-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(26, 19, 14, 0.85);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.4s ease;
+                padding: 2rem;
+            }
+
+                .login-overlay.show {
+                    opacity: 1;
+                    pointer-events: auto;
+                }
+
+            /* Cuadro de Login */
+            .card-login {
+                background-color: var(--card-brown-light);
+                max-width: 450px;
+                width: 100%;
+                position: relative;
+                border-radius: 16px !important;
+                overflow: hidden;
+                border: 1px solid var(--border-luxe);
+                outline: 1px solid rgba(245, 235, 225, 0.15);
+                outline-offset: -8px;
+                box-shadow: 0 30px 60px rgba(0,0,0,0.7);
+                transform: scale(0.92);
+                transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+                padding: 3rem 2.5rem 12rem 2.5rem; /* Espacio inferior protegido para la pluma */
+            }
+
+                /* Imagen de la pluma fuente colocada desde internet */
+                .card-login::after {
+                    content: '';
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 180px;
+                    background-image: url('https://images.unsplash.com/photo-1455390582262-044cdead277a?q=80&w=600&auto=format&fit=crop');
+                    background-size: cover;
+                    background-position: center bottom;
+                    z-index: 1;
+                    opacity: 0.35;
+                    pointer-events: none;
+                    -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%);
+                    mask-image: linear-gradient(to top, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%);
+                }
+
+            .login-overlay.show .card-login {
+                transform: scale(1);
+                backdrop-filter: blur(12px);
+                background-color: rgba(74, 55, 44, 0.92);
+            }
+
+            /* Contenido interno encima de la imagen decorativa */
+            .card-login-content {
+                position: relative;
+                z-index: 2;
+            }
+
+            /* Botón de cierre */
+            .close-login {
+                position: absolute;
+                top: 1.2rem;
+                right: 1.2rem;
+                background: none;
+                border: none;
+                font-size: 1.5rem;
+                color: var(--muted-champagne);
+                cursor: pointer;
+                transition: color 0.3s ease, transform 0.3s ease;
+                z-index: 3;
+            }
+
+                .close-login:hover {
+                    color: var(--champagne-ivory);
+                    transform: scale(1.1);
+                }
+
+            .login-header-title {
+                font-family: 'Cinzel Decorative', serif;
+                font-size: 2.5rem;
+                color: var(--champagne-ivory);
+            }
+
+            .form-label {
+                font-family: 'Playfair Display', serif;
+                color: var(--champagne-ivory);
+                font-size: 0.9rem;
+                font-weight: 500;
+                margin-bottom: 0.4rem;
+            }
+
+            /* Inputs */
+            .form-control {
+                background-color: var(--input-bg);
+                border: 1px solid var(--border-luxe);
+                color: #ffffff;
+                border-radius: 8px;
+                padding: 0.75rem 1rem;
+                font-size: 0.95rem;
+                transition: all 0.3s ease;
+            }
+
+                .form-control::placeholder {
+                    color: rgba(194, 179, 165, 0.5);
+                    font-style: italic;
+                }
+
+                .form-control:focus {
+                    background-color: rgba(255, 255, 255, 0.1);
+                    border-color: var(--champagne-ivory);
+                    box-shadow: 0 0 10px rgba(245, 235, 225, 0.25);
+                    color: #ffffff;
+                }
+
+            .input-group-text {
+                background-color: rgba(255, 255, 255, 0.03);
+                border-color: var(--border-luxe);
+                color: var(--muted-champagne);
+                border-radius: 8px 0 0 8px;
+            }
+
+            .input-group:focus-within .input-group-text {
+                color: var(--champagne-ivory);
+                border-color: var(--champagne-ivory);
+            }
+
+            .input-group > .form-control {
+                border-radius: 0 8px 8px 0;
+            }
+
+            /* Botón de envío */
+            .btn-luxe {
+                background-color: var(--dark-espresso) !important;
+                border: 1px solid var(--border-luxe) !important;
+                color: var(--champagne-ivory) !important;
+                border-radius: 8px;
+                font-family: 'Playfair Display', serif;
+                font-weight: 600;
+                letter-spacing: 0.5px;
+                transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            }
+
+                .btn-luxe:hover {
+                    background-color: #31231a !important;
+                    color: #ffffff !important;
+                    border-color: var(--champagne-ivory) !important;
+                    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+                    transform: translateY(-2px);
+                }
+
+                .btn-luxe:active {
+                    transform: translateY(1px);
+                    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+                }
+
+            .alert-danger {
+                background-color: rgba(255, 255, 255, 0.08) !important;
+                border-color: rgba(245, 235, 225, 0.2) !important;
+                color: var(--champagne-ivory) !important;
+                border-radius: 8px;
+            }
+
+            body.login-open {
+                overflow: hidden;
+            }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <h1 class="logo-text">QualityDoc</h1>
+        <div class="auth-buttons">
+            <button class="btn btn-outline-luxe rounded-pill px-4 py-2" id="login-nav-btn">Iniciar Sesión</button>
+        </div>
+    </header>
+
+    <div class="page-content">
+        <main class="hero-section text-center p-4">
+            <h2 class="hero-title mb-2">Sistema de Gestión Documental</h2>
+            <p class="hero-subtitle mb-5">Resguardo inteligente, acceso profesional seguro.</p>
+            <button class="btn btn-luxe rounded-pill px-5 py-3 btn-lg" id="access-btn">
+                <i class="bi bi-folder-symlink-fill me-2"></i> Acceder al Archivo
+            </button>
+        </main>
+    </div>
+
+    <div class="login-overlay d-none" id="login-overlay">
+        <div class="card card-login shadow-lg">
+            <button class="close-login" id="close-login-btn"><i class="bi bi-x-lg"></i></button>
+
+            <div class="card-login-content">
+                <div class="text-center mb-4">
+                    <h3 class="login-header-title mb-1">QualityDoc</h3>
+                    <p class="small italic text-uppercase tracking-wider" style="color: var(--muted-champagne); font-size: 0.75rem;">Autenticación Administrativa</p>
+                </div>
+
+                <form asp-controller="Auth" asp-action="Login" method="post">
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            <div asp-validation-summary="All" class="list-unstyled mb-0"></div>
+                        </div>
+                    }
+
+                    <div class="mb-4">
+                        <label for="Email" class="form-label">Correo Electrónico</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-envelope-fill"></i></span>
+                            <input type="email" name="Email" id="Email" class="form-control shadow-none"
+                                   placeholder="usuario@empresa.com" required autocomplete="email" />
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="Password" class="form-label">Contraseña de Acceso</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                            <input type="password" name="Password" id="Password" class="form-control shadow-none"
+                                   placeholder="••••••••" required />
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-luxe w-100 py-3 mt-3">
+                        <i class="bi bi-shield-lock-fill me-2"></i> Ingresar al Sistema
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-5 footer-text" style="position: absolute; bottom: 10px; width: 100%; z-index: 2; color: var(--muted-champagne); font-size: 0.8rem; opacity: 0.7;">
+        <p class="mb-0">&copy; 2026 QualityDoc v2 :: Módulo de Gestión de Documentos</p>
+    </div>
+
+    <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const loginOverlay = document.getElementById('login-overlay');
+                const openLoginNavBtn = document.getElementById('login-nav-btn');
+                const openAccessBtn = document.getElementById('access-btn');
+                const closeLoginBtn = document.getElementById('close-login-btn');
+                const body = document.body;
+
+                // --- CORRECCIÓN: Detección automática de errores ---
+                // Si el modelo tiene errores, abrimos el modal inmediatamente al cargar
+                @if (!ViewData.ModelState.IsValid)
+                {
+                        <text>
+                            loginOverlay.classList.remove('d-none');
+                            setTimeout(() => { loginOverlay.classList.add('show'); }, 10);
+                            body.classList.add('login-open');
+                        </text>
+                }
+
+                function openLogin() {
+                    loginOverlay.classList.remove('d-none');
+                    setTimeout(() => {
+                        loginOverlay.classList.add('show');
+                    }, 10);
+                    body.classList.add('login-open');
+                }
+
+                function closeLogin() {
+                    loginOverlay.classList.remove('show');
+                    setTimeout(() => {
+                        loginOverlay.classList.add('d-none');
+                        // Limpiar la alerta de error al cerrar el modal
+                        const errorAlert = loginOverlay.querySelector('.alert-danger');
+                        if (errorAlert) {
+                            errorAlert.remove();
+                        }
+                    }, 400);
+                    body.classList.remove('login-open');
+                }
+
+                if (openLoginNavBtn) openLoginNavBtn.addEventListener('click', openLogin);
+                if (openAccessBtn) openAccessBtn.addEventListener('click', openLogin);
+                if (closeLoginBtn) closeLoginBtn.addEventListener('click', closeLogin);
+
+                loginOverlay.addEventListener('click', function(e) {
+                    if (e.target === loginOverlay) {
+                        closeLogin();
+                    }
+                });
+            });
+    </script>
+</body>
+</html>

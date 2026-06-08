@@ -1,0 +1,143 @@
+@model QualityDocc.Domain.Entities.Document
+
+<div class="container mt-4">
+    <h2 class="mb-4" style="color: #4a3b32;">Revisión de Documento: QD-@Model.Id</h2>
+    <hr style="border-color: #9b9564; border-width: 2px;" />
+
+    <div class="row mt-4">
+        <div class="col-md-5 mb-4">
+            <div class="card shadow-sm border-0 p-4" style="background-color: #fcfaf5; border-radius: 12px; color: #4a3b32;">
+                <h4 style="color: #6e4c30;" class="mb-3">@Model.Title</h4>
+                <p class="mb-2"><strong>Norma ISO:</strong> @(Model.Iso?.Name ?? "N/A")</p>
+                <p class="mb-2"><strong>Descripción:</strong> @Model.Description</p>
+                
+                @{
+                    var latestVersion = Model.Versions?.OrderByDescending(v => v.VersionNumber).FirstOrDefault();
+                }
+                
+                <p class="mb-2"><strong>Última Versión Enviada:</strong> @(latestVersion?.VersionNumber.ToString("0.0") ?? "-")</p>
+                <p class="mb-2"><strong>Comentarios del Autor (ChangeLog):</strong></p>
+                <div class="p-3 bg-white border rounded mb-3 text-muted fst-italic">
+                    @(latestVersion?.ChangeLog ?? "Sin comentarios del autor registrados.")
+                </div>
+
+                @if (latestVersion != null && !string.IsNullOrEmpty(latestVersion.FileUrl))
+                {
+                    <a href="@latestVersion.FileUrl" target="_blank" class="btn btn-sm text-white w-100 py-2 mt-2" style="background-color: #9b9564;">
+                        <i class="bi bi-file-earmark-arrow-down-fill me-1"></i> Descargar / Ver Documento Adjunto
+                    </a>
+                }
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <div class="card shadow-sm border-0 p-4" style="border-radius: 12px; color: #4a3b32;">
+                <form asp-action="ProcessReview" method="post" id="reviewForm">
+                    <input type="hidden" name="id" value="@Model.Id" />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="color: #4a3b32;">Notas de revisión (Obligatorio si se rechaza):</label>
+                        <textarea name="notes" id="rejectionNotes" class="form-control" rows="6" placeholder="Escribe aquí los cambios que el autor debe realizar para que el documento sea aprobado..."></textarea>
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger mt-2" })
+                    </div>
+
+                    <div class="d-flex gap-3 mt-4">
+                        <button type="button" class="btn text-white w-50 py-2 fw-bold" style="background-color: #9b9564; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'" data-bs-toggle="modal" data-bs-target="#approveModal">
+                            Aprobar Documento
+                        </button>
+
+                        <button type="button" class="btn text-white w-50 py-2 fw-bold" style="background-color: #6e4c30; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'" onclick="validateAndShowRejectModal()">
+                            Devolver al Autor
+                        </button>
+                    </div>
+
+                    <!-- Modal de Aprobación -->
+                    <div class="modal fade fade-in" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header text-white" style="background-color: #9b9564;">
+                                    <h5 class="modal-title" id="approveModalLabel"><i class="bi bi-check-circle-fill me-2"></i>Aprobar Documento</h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                </div>
+                                <div class="modal-body text-dark">
+                                    ¿Estás seguro de que deseas aprobar este documento? Se registrará como la versión oficial <strong>Vigente</strong> y las versiones anteriores pasarán a estado <strong>Obsoleto</strong>.
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="submit" name="actionType" value="Aprobar" class="btn text-white" style="background-color: #9b9564;">Confirmar Aprobación</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal de Rechazo -->
+                    <div class="modal fade fade-in" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header text-white" style="background-color: #6e4c30;">
+                                    <h5 class="modal-title" id="rejectModalLabel"><i class="bi bi-exclamation-triangle-fill me-2"></i>Devolver al Autor</h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                </div>
+                                <div class="modal-body text-dark">
+                                    ¿Estás seguro de que deseas devolver este documento al autor? Deberá corregir las observaciones indicadas antes de volver a enviarlo a revisión.
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="submit" name="actionType" value="Rechazar" class="btn text-white" style="background-color: #6e4c30;">Confirmar Devolución</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección de Vista Previa del Documento -->
+    <div class="row mt-4 mb-5">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 p-4" style="background-color: #fcfaf5; border-radius: 12px; color: #4a3b32;">
+                <h4 style="color: #6e4c30;" class="mb-3"><i class="bi bi-eye-fill me-2"></i>Vista Previa del Documento</h4>
+                @if (latestVersion != null && !string.IsNullOrEmpty(latestVersion.FileUrl))
+                {
+                    @if (latestVersion.Extension.ToLower() == ".pdf")
+                    {
+                        <div class="ratio ratio-16x9" style="height: 600px;">
+                            <iframe src="@latestVersion.FileUrl" style="border: 2px solid #9b9564; border-radius: 8px; width: 100%; height: 100%;"></iframe>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning text-center py-4" style="border-radius: 8px; background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404;">
+                            <i class="bi bi-file-earmark-word-fill display-4 mb-3 d-block"></i>
+                            <h5>La vista previa en pantalla completa está disponible principalmente para archivos PDF.</h5>
+                            <p>Este archivo es un documento Word (<strong>.docx</strong>). Para revisarlo, descárgalo directamente usando el siguiente botón:</p>
+                            <a href="@latestVersion.FileUrl" target="_blank" class="btn btn-warning mt-2 px-4 py-2 fw-bold text-dark">
+                                <i class="bi bi-download me-1"></i> Descargar Archivo Word
+                            </a>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="alert alert-danger text-center py-4" style="border-radius: 8px;">
+                        No hay ningún archivo adjunto en esta versión.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function validateAndShowRejectModal() {
+        var notes = document.getElementById("rejectionNotes").value.trim();
+        if (notes === "") {
+            alert("Por favor, escribe las notas de revisión explicando por qué estás rechazando el documento.");
+            document.getElementById("rejectionNotes").focus();
+            return;
+        }
+        var myModal = new bootstrap.Modal(document.getElementById('rejectModal'), {});
+        myModal.show();
+    }
+</script>

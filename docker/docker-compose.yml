@@ -12,9 +12,9 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: Rosalinda
-      POSTGRES_PASSWORD: Rosa123
-      POSTGRES_DB: gestionconsulta
+      POSTGRES_USER: sgd_user
+      POSTGRES_PASSWORD: sgd_password
+      POSTGRES_DB: sgd_db
     volumes:
       - pg_data:/var/lib/postgresql/data
       - ../db/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -29,6 +29,13 @@ services:
     container_name: web-php
     ports:
       - "8080:80"
+    environment:
+      - DB_HOST=db-postgres
+      - DB_PORT=5432
+      - DB_NAME=sgd_db
+      - DB_USER=sgd_user
+      - DB_PASSWORD=sgd_password
+      - AUTH_API_URL=http://admin-dotnet:8080/api/login
     volumes:
       - ../src/php-app:/var/www/html
     depends_on:
@@ -63,42 +70,72 @@ services:
     environment:
       - MONGODB_URI=mongodb://db-mongodb:27017/qualitydoc
       - NODE_ENV=production
+      - AUTH_API_URL=http://admin-dotnet:8080/api/login
     depends_on:
       - db-mongodb
     networks:
       - qualitydoc-net
 
   # ==========================================
-  # TEMPLATE PARA EL MÓDULO CENTRAL (.NET & SQL SERVER)
-  # (Odeth: Descomenta esta sección y ajusta las rutas cuando integres tu parte)
+  # MÓDULO CENTRAL (.NET & SQL SERVER)
   # ==========================================
-  #
-  # db-sqlserver:
-  #   image: mcr.microsoft.com/mssql/server:2022-latest
-  #   container_name: db-sqlserver
-  #   ports:
-  #     - "1433:1433"
-  #   environment:
-  #     - ACCEPT_EULA=Y
-  #     - MSSQL_SA_PASSWORD=TuPasswordSeguro123!
-  #   volumes:
-  #     - mssql_data:/var/opt/mssql/data
-  #     # Script para crear tus tablas de SQL Server iniciales
-  #     - ../db/sqlserver/init.sql:/usr/config/init.sql
-  #   networks:
-  #     - qualitydoc-net
-  #
-  # admin-dotnet:
-  #   build:
-  #     context: ../src/dotnet-core
-  #     dockerfile: ../../docker/dotnet.Dockerfile
-  #   container_name: admin-dotnet
-  #   ports:
-  #     - "5000:80"
-  #   depends_on:
-  #     - db-sqlserver
-  #   networks:
-  #     - qualitydoc-net
+
+  db-sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: db-sqlserver
+    user: root
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Document2026!
+    volumes:
+      - mssql_data:/var/opt/mssql/data
+      - ../db/sqlserver/init.sql:/usr/config/init.sql
+    networks:
+      - qualitydoc-net
+
+  db-sqlserver-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: db-sqlserver-init
+    depends_on:
+      - db-sqlserver
+    volumes:
+      - ../db/sqlserver/init.sql:/usr/config/init.sql
+    entrypoint: >
+      /bin/bash -c "
+      echo 'Waiting for SQL Server to start...';
+      for i in {1..60}; do
+        /opt/mssql-tools18/bin/sqlcmd -S db-sqlserver -U sa -P 'Document2026!' -C -Q 'SELECT 1' &>/dev/null
+        if [ $$? -eq 0 ]; then
+          echo 'SQL Server is up, running init.sql...';
+          /opt/mssql-tools18/bin/sqlcmd -S db-sqlserver -U sa -P 'Document2026!' -C -i /usr/config/init.sql;
+          echo 'Database initialized successfully!';
+          exit 0;
+        fi
+        sleep 2;
+      done;
+      echo 'SQL Server initialization timed out.';
+      exit 1;
+      "
+    networks:
+      - qualitydoc-net
+
+  admin-dotnet:
+    build:
+      context: ../src/dotnet-core/src/modulo-central
+      dockerfile: Dockerfile
+    container_name: admin-dotnet
+    ports:
+      - "5000:8080"
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=db-sqlserver;Database=DocumentManagement;User Id=sa;Password=Document2026!;TrustServerCertificate=True;
+    volumes:
+      - ../src/dotnet-core/src/modulo-central/QualityDocc.MVC/wwwroot/uploads:/app/wwwroot/uploads
+    depends_on:
+      - db-sqlserver
+    networks:
+      - qualitydoc-net
 
 networks:
   qualitydoc-net:
@@ -107,4 +144,4 @@ networks:
 volumes:
   pg_data:
   mongo_data:
-  # mssql_data:
+  mssql_data:

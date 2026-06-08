@@ -1,0 +1,161 @@
+@model IEnumerable<QualityDocc.Domain.Entities.Iso>
+@{
+    Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+    ViewData["Title"] = "Gestión de ISO - QualityDocc";
+}
+
+<div class="container-fluid py-4" style="color: #F5EBE1;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold m-0" style="color: #ffffff;"><i class="bi bi-shield-check me-2 text-warning"></i>Gestión de ISO</h2>
+            <p class="text-muted text-light-50 m-0">Agrega y actualiza las normas ISO disponibles en el sistema.</p>
+        </div>
+        <button type="button" class="btn text-dark fw-bold" style="background-color: #E8D1A7;" data-bs-toggle="modal" data-bs-target="#createIsoModal">
+            <i class="bi bi-plus-circle-fill me-1"></i> Nueva ISO
+        </button>
+    </div>
+
+    <!-- Alert de confirmación o error -->
+    @if (TempData["IsoSuccess"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["IsoSuccess"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["IsoError"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["IsoError"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Tabla de ISOs -->
+    <div class="card border-0 shadow-sm" style="background-color: #4A372C; border-radius: 16px; color: #F5EBE1;">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-dark align-middle mb-0" style="background-color: transparent;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #C2B3A5;">
+                            <th class="p-3">ID</th>
+                            <th class="p-3">Nombre de la ISO</th>
+                            <th class="p-3">Empresa Vinculada</th>
+                            <th class="p-3 text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">No hay normas ISO registradas en este momento.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            foreach (var iso in Model)
+                            {
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    <td class="p-3">ISO-@iso.Id</td>
+                                    <td class="p-3 fw-bold">@iso.Name</td>
+                                    <td class="p-3">@(iso.Company?.Name ?? "General (Sin Empresa)")</td>
+                                    <td class="p-3 text-center">
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <button type="button" class="btn btn-sm btn-outline-warning" onclick="openEditIso(@iso.Id, '@iso.Name', @iso.CompanyId)" title="Editar">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </button>
+                                            <form asp-action="DeleteIso" method="post" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta norma ISO?');" style="display:inline;">
+                                                <input type="hidden" name="id" value="@iso.Id" />
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Crear ISO -->
+    <div class="modal fade" id="createIsoModal" tabindex="-1" aria-labelledby="createIsoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-dark">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title" id="createIsoModalLabel"><i class="bi bi-plus-circle-fill me-2"></i>Registrar Nueva ISO</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form asp-action="CreateIso" method="post">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nombre de la ISO:</label>
+                            <input type="text" name="Name" class="form-control" placeholder="ej. ISO-9001" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Empresa Propietaria:</label>
+                            <select name="CompanyId" class="form-select" required>
+                                @foreach (var company in (IEnumerable<QualityDocc.Domain.Entities.Company>)ViewBag.Companies)
+                                {
+                                    <option value="@company.Id">@company.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn text-dark fw-bold" style="background-color: #E8D1A7;">Crear ISO</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar ISO -->
+    <div class="modal fade" id="editIsoModal" tabindex="-1" aria-labelledby="editIsoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-dark">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title" id="editIsoModalLabel"><i class="bi bi-pencil-square me-2"></i>Editar ISO</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form asp-action="EditIso" method="post">
+                    <input type="hidden" name="id" id="editIsoId" />
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nombre de la ISO:</label>
+                            <input type="text" name="name" id="editIsoName" class="form-control" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Empresa Propietaria:</label>
+                            <select name="companyId" id="editIsoCompanyId" class="form-select" required>
+                                @foreach (var company in (IEnumerable<QualityDocc.Domain.Entities.Company>)ViewBag.Companies)
+                                {
+                                    <option value="@company.Id">@company.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn text-white fw-bold bg-dark">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openEditIso(id, name, companyId) {
+        document.getElementById('editIsoId').value = id;
+        document.getElementById('editIsoName').value = name;
+        document.getElementById('editIsoCompanyId').value = companyId;
+        
+        var editModal = new bootstrap.Modal(document.getElementById('editIsoModal'));
+        editModal.show();
+    }
+</script>

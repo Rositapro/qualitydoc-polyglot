@@ -1,86 +1,237 @@
 <?php
-// 1. INICIAR SESIÓN Y VALIDAR SEGURIDAD (Primero que todo)
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+// Página de Inicio / Bienvenida - SGD MultiTenant
+
+require_once __DIR__ . '/includes/header.php';
+
+// Obtener estadísticas de la empresa actual
+try {
+    // Total de documentos
+    $stmt = $pdo->prepare("SELECT COUNT(*) AS total FROM documento WHERE empresaid = :empresa");
+    $stmt->execute(['empresa' => $empresa_id]);
+    $stat_total = $stmt->fetch()['total'];
+
+    // Documentos vigentes
+    $stmt = $pdo->prepare("SELECT COUNT(*) AS total FROM documento WHERE empresaid = :empresa AND estado = 'vigente'");
+    $stmt->execute(['empresa' => $empresa_id]);
+    $stat_vigentes = $stmt->fetch()['total'];
+
+    // Documentos obsoletos
+    $stmt = $pdo->prepare("SELECT COUNT(*) AS total FROM documento WHERE empresaid = :empresa AND estado = 'obsoleto'");
+    $stmt->execute(['empresa' => $empresa_id]);
+    $stat_obsoletos = $stmt->fetch()['total'];
+
+    // Total sugerencias
+    $stmt = $pdo->prepare("SELECT COUNT(*) AS total FROM sugerencias WHERE empresaid = :empresa");
+    $stmt->execute(['empresa' => $empresa_id]);
+    $stat_sugerencias = $stmt->fetch()['total'];
+
+} catch (PDOException $e) {
+    $stat_total = $stat_vigentes = $stat_obsoletos = $stat_sugerencias = 0;
 }
-
-if (!isset($_SESSION['idusuario'])) {
-    header("Location: login.php");
-    exit();
-}
-
-// 2. INCLUIR CONEXIÓN Y HEADER (Header va después de la lógica de redirección)
-require_once 'conexion.php';
-require_once 'includes/header.php';
-
-// 3. CAPTURA DE FILTROS
-$empresaid = $_SESSION['empresaid'] ?? 1;
-$idiso = isset($_GET['idiso']) ? $_GET['idiso'] : '';
-$estado = isset($_GET['estado']) ? $_GET['estado'] : '';
-
-// 4. CONSULTA SQL DINÁMICA
-$sql = "SELECT d.iddocumento, d.titulodocumento, d.codigo, d.version, i.nombreiso, d.estado 
-        FROM documento d 
-        JOIN iso i ON d.idiso = i.idiso 
-        WHERE d.empresaid = :empresaid";
-
-if (!empty($idiso)) $sql .= " AND d.idiso = :idiso";
-if (!empty($estado)) $sql .= " AND d.estado = :estado";
-
-$stmt = $pdo->prepare($sql);
-$stmt->bindValue(':empresaid', $empresaid, PDO::PARAM_INT);
-if (!empty($idiso)) $stmt->bindValue(':idiso', $idiso, PDO::PARAM_INT);
-if (!empty($estado)) $stmt->bindValue(':estado', $estado, PDO::PARAM_STR);
-$stmt->execute();
-$documentos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
-<div class="container-fluid">
-    <h1 class="mb-4">Consulta de Documentos</h1>
-    
-    <form method="GET" class="row g-3 mb-4">
-        <div class="col-auto">
-            <select name="idiso" class="form-select" onchange="this.form.submit()">
-                <option value="">Todas las ISOs</option>
-            </select>
+<div class="row font-sans mb-4">
+    <!-- Card de Bienvenida Principal -->
+    <div class="col-12">
+        <div class="card-elegant p-4 p-md-5 text-white position-relative" style="background: linear-gradient(135deg, #4a2e1a 0%, #23170f 100%); border: none; border-radius: 16px;">
+            <!-- Decoración sutil de fondo -->
+            <div class="position-absolute end-0 top-50 translate-middle-y opacity-10 pe-5 d-none d-md-block" style="font-size: 8rem; pointer-events: none;">
+                <i class="bi bi-journal-bookmark-fill"></i>
+            </div>
+            
+            <div class="position-relative z-1" style="max-width: 700px;">
+                <span class="badge bg-warning text-dark px-3 py-2 mb-3 rounded-pill text-uppercase fw-semibold" style="letter-spacing: 0.05em; font-size: 0.75rem;">
+                    Portal Corporativo Activo
+                </span>
+                
+                <h1 class="display-5 text-white font-title mb-3" style="font-weight: 700;">
+                    ¡Te damos la bienvenida, <?php echo htmlspecialchars($nombre_usuario); ?>!
+                </h1>
+                
+                <p class="lead text-light-subtle font-sans mb-4" style="font-size: 1.1rem; line-height: 1.6; opacity: 0.9;">
+                    Estás en el Sistema de Gestión Documental (SGD). Desde aquí puedes administrar, visualizar y sugerir mejoras en los manuales de calidad y procedimientos operativos de tu organización.
+                </p>
+                
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="documentos.php" class="btn btn-elegant-accent px-4 py-2" id="btn-welcome-explore">
+                        <i class="bi bi-folder2-open me-2"></i> Explorar Documentos
+                    </a>
+                    <a href="logs.php" class="btn btn-outline-light px-4 py-2 font-sans" id="btn-welcome-logs">
+                        <i class="bi bi-shield-check me-2"></i> Ver Auditoría
+                    </a>
+                </div>
+            </div>
         </div>
-        <div class="col-auto">
-            <select name="estado" class="form-select" onchange="this.form.submit()">
-                <option value="">Cualquier estado</option>
-                <option value="vigente" <?php if($estado == 'vigente') echo 'selected'; ?>>Vigente</option>
-                <option value="obsoleto" <?php if($estado == 'obsoleto') echo 'selected'; ?>>Obsoleto</option>
-            </select>
-        </div>
-    </form>
-
-    <table class="table table-hover">
-        <thead class="table-dark">
-            <tr>
-                <th>Documento</th>
-                <th>Código</th>
-                <th>ISO</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($documentos as $doc): ?>
-            <tr>
-                <td><?= htmlspecialchars($doc['titulodocumento']) ?></td>
-                <td><?= htmlspecialchars($doc['codigo']) ?></td>
-                <td><?= htmlspecialchars($doc['nombreiso']) ?></td>
-                <td><?= htmlspecialchars($doc['estado']) ?></td>
-                <td>
-                    <a href="visor.php?id=<?= $doc['iddocumento'] ?>" class="btn btn-sm btn-primary" target="_blank">Ver</a>
-                    <a href="descargar.php?id=<?= $doc['iddocumento'] ?>" class="btn btn-sm btn-success">Descargar</a>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
+    </div>
 </div>
 
-<?php 
-// 5. CERRAR CON FOOTER
-require_once 'includes/footer.php'; 
+<!-- Grid de Métricas Rápidas -->
+<div class="row mb-4 font-sans">
+    <div class="col-12 col-md-6 col-lg-3 mb-3 mb-lg-0">
+        <div class="card-elegant stat-card p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted mb-1 text-uppercase fw-semibold" style="font-size: 0.75rem; letter-spacing: 0.05em;">Total Documentos</h6>
+                    <div class="stat-val"><?php echo $stat_total; ?></div>
+                </div>
+                <div class="fs-1 text-muted opacity-50"><i class="bi bi-file-earmark-text"></i></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-12 col-md-6 col-lg-3 mb-3 mb-lg-0">
+        <div class="card-elegant stat-card p-3 h-100" style="border-left-color: var(--color-vigente-text) !important;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted mb-1 text-uppercase fw-semibold" style="font-size: 0.75rem; letter-spacing: 0.05em;">Vigentes</h6>
+                    <div class="stat-val text-success"><?php echo $stat_vigentes; ?></div>
+                </div>
+                <div class="fs-1 text-success opacity-50"><i class="bi bi-check-circle-fill"></i></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-12 col-md-6 col-lg-3 mb-3 mb-lg-0">
+        <div class="card-elegant stat-card p-3 h-100" style="border-left-color: var(--color-obsoleto-text) !important;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted mb-1 text-uppercase fw-semibold" style="font-size: 0.75rem; letter-spacing: 0.05em;">Obsoletos</h6>
+                    <div class="stat-val text-danger"><?php echo $stat_obsoletos; ?></div>
+                </div>
+                <div class="fs-1 text-danger opacity-50"><i class="bi bi-x-circle-fill"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-lg-3 mb-3 mb-lg-0">
+        <div class="card-elegant stat-card p-3 h-100" style="border-left-color: #805ad5 !important;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted mb-1 text-uppercase fw-semibold" style="font-size: 0.75rem; letter-spacing: 0.05em;">Sugerencias</h6>
+                    <div class="stat-val" style="color: #805ad5;"><?php echo $stat_sugerencias; ?></div>
+                </div>
+                <div class="fs-1 text-primary opacity-50" style="color: #805ad5 !important;"><i class="bi bi-chat-right-quote-fill"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Columna Izquierda: Accesos y Guía de Operación -->
+    <div class="col-12 col-lg-6 mb-4">
+        <div class="card-elegant h-100">
+            <div class="card-elegant-header">
+                <h5 class="m-0 font-title"><i class="bi bi-compass-fill me-2 text-accent"></i>Accesos del Sistema</h5>
+            </div>
+            <div class="card-elegant-body font-sans">
+                <div class="d-flex flex-column gap-3">
+                    <div class="p-3 rounded border border-light-subtle d-flex gap-3 align-items-start" style="background-color: #faf9f6;">
+                        <div class="bg-primary text-white rounded p-2" style="background-color: var(--color-primary) !important;">
+                            <i class="bi bi-folder2-open fs-4"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1 fw-bold text-dark">Explorador de Documentos</h6>
+                            <p class="text-muted mb-2" style="font-size: 0.85rem;">
+                                Consulta y descarga la documentación oficial (Vigente u Obsoleta) filtrando por Normativa ISO aplicable.
+                            </p>
+                            <a href="documentos.php" class="btn btn-sm btn-link p-0 text-decoration-none fw-bold" style="color: var(--color-primary);">
+                                Ir a Documentos <i class="bi bi-chevron-right" style="font-size: 0.7rem;"></i>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="p-3 rounded border border-light-subtle d-flex gap-3 align-items-start" style="background-color: #faf9f6;">
+                        <div class="bg-dark text-white rounded p-2" style="background-color: var(--color-dark) !important;">
+                            <i class="bi bi-shield-check fs-4"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1 fw-bold text-dark">Auditoría en Tiempo Real</h6>
+                            <p class="text-muted mb-2" style="font-size: 0.85rem;">
+                                Consulta el registro seguro (logs) de quién visualizó, descargó o sugirió cambios sobre la documentación.
+                            </p>
+                            <a href="logs.php" class="btn btn-sm btn-link p-0 text-decoration-none fw-bold" style="color: var(--color-primary);">
+                                Ir a Auditoría <i class="bi bi-chevron-right" style="font-size: 0.7rem;"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="p-3 rounded border border-light-subtle d-flex gap-3 align-items-start" style="background-color: #faf9f6;">
+                        <div class="bg-warning text-dark rounded p-2" style="background-color: var(--color-accent) !important; color: white !important;">
+                            <i class="bi bi-person-fill-gear fs-4"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1 fw-bold text-dark">Tu Cuenta y Rol: <?php echo htmlspecialchars($rol_usuario); ?></h6>
+                            <p class="text-muted mb-0" style="font-size: 0.85rem;">
+                                Tus permisos están condicionados al tenant corporativo con <strong>ID <?php echo htmlspecialchars($empresa_id); ?></strong>. Toda acción será auditada por seguridad.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Columna Derecha: Estándares ISO Admitidos -->
+    <div class="col-12 col-lg-6 mb-4">
+        <div class="card-elegant h-100">
+            <div class="card-elegant-header">
+                <h5 class="m-0 font-title"><i class="bi bi-bookmark-star-fill me-2 text-warning"></i>Normativas ISO Soportadas</h5>
+            </div>
+            <div class="card-elegant-body font-sans">
+                <p class="text-muted" style="font-size: 0.9rem;">
+                    Los documentos disponibles en este portal académico-empresarial se clasifican de acuerdo con los siguientes estándares de calidad internacional:
+                </p>
+                
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item bg-transparent px-0 py-3 border-light d-flex gap-3">
+                        <span class="badge badge-iso text-uppercase d-flex align-items-center justify-content-center" style="width: 85px; height: 35px; font-size: 0.75rem;">ISO 9001</span>
+                        <div>
+                            <h6 class="mb-0 fw-bold text-dark">Sistemas de Gestión de Calidad (SGC)</h6>
+                            <small class="text-muted">Asegura la satisfacción del cliente y el control de calidad interno.</small>
+                        </div>
+                    </div>
+                    
+                    <div class="list-group-item bg-transparent px-0 py-3 border-light d-flex gap-3">
+                        <span class="badge badge-iso text-uppercase d-flex align-items-center justify-content-center" style="width: 85px; height: 35px; font-size: 0.75rem;">ISO 14001</span>
+                        <div>
+                            <h6 class="mb-0 fw-bold text-dark">Sistemas de Gestión Ambiental (SGA)</h6>
+                            <small class="text-muted">Minimiza el impacto ecológico de los procesos de la organización.</small>
+                        </div>
+                    </div>
+                    
+                    <div class="list-group-item bg-transparent px-0 py-3 border-light d-flex gap-3">
+                        <span class="badge badge-iso text-uppercase d-flex align-items-center justify-content-center" style="width: 85px; height: 35px; font-size: 0.75rem;">ISO 27001</span>
+                        <div>
+                            <h6 class="mb-0 fw-bold text-dark">Seguridad de la Información (SGSI)</h6>
+                            <small class="text-muted">Protege la confidencialidad, integridad y disponibilidad de los datos.</small>
+                        </div>
+                    </div>
+
+                    <div class="list-group-item bg-transparent px-0 py-3 border-light d-flex gap-3 border-bottom-0">
+                        <span class="badge badge-iso text-uppercase d-flex align-items-center justify-content-center" style="width: 85px; height: 35px; font-size: 0.75rem;">ISO 45001</span>
+                        <div>
+                            <h6 class="mb-0 fw-bold text-dark">Seguridad y Salud en el Trabajo</h6>
+                            <small class="text-muted">Previene lesiones y enfermedades ocupacionales en el entorno laboral.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pie / Recomendaciones de Calidad -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card-elegant p-3 text-center border-dashed font-sans" style="background-color: #fbfaf8; border: 1.5px dashed var(--border-color); border-radius: 10px;">
+            <p class="mb-0 text-muted" style="font-size: 0.85rem;">
+                <i class="bi bi-info-circle-fill me-2 text-accent"></i>
+                <strong>Consejo de Calidad:</strong> Cuando emitas una sugerencia sobre un documento, especifica claramente la sección y el cambio propuesto para facilitar la revisión del auditor.
+            </p>
+        </div>
+    </div>
+</div>
+
+<?php
+require_once __DIR__ . '/includes/footer.php';
 ?>

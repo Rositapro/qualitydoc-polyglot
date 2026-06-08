@@ -1,0 +1,140 @@
+@model IEnumerable<QualityDocc.Domain.Entities.Company>
+@{
+    Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+    ViewData["Title"] = "Gestión de Empresas - QualityDocc";
+}
+
+<div class="container-fluid py-4" style="color: #F5EBE1;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold m-0" style="color: #ffffff;"><i class="bi bi-building me-2 text-warning"></i>Gestión de Empresas</h2>
+            <p class="text-muted text-light-50 m-0">Agrega, actualiza y administra las empresas (tenants) registradas en la plataforma.</p>
+        </div>
+        <button type="button" class="btn text-dark fw-bold" style="background-color: #E8D1A7;" data-bs-toggle="modal" data-bs-target="#createCompanyModal">
+            <i class="bi bi-plus-circle-fill me-1"></i> Nueva Empresa
+        </button>
+    </div>
+
+    <!-- Alert de confirmación o error -->
+    @if (TempData["CompanySuccess"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["CompanySuccess"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["CompanyError"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["CompanyError"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Tabla de Empresas -->
+    <div class="card border-0 shadow-sm" style="background-color: #4A372C; border-radius: 16px; color: #F5EBE1;">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-dark align-middle mb-0" style="background-color: transparent;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #C2B3A5;">
+                            <th class="p-3">ID</th>
+                            <th class="p-3">Nombre de la Empresa</th>
+                            <th class="p-3 text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="3" class="text-center py-4 text-muted">No hay empresas registradas en este momento.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            foreach (var company in Model)
+                            {
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    <td class="p-3 font-monospace">EMP-@company.Id</td>
+                                    <td class="p-3 fw-bold">@company.Name</td>
+                                    <td class="p-3 text-center">
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <button type="button" class="btn btn-sm btn-outline-warning" onclick="openEditCompany(@company.Id, '@company.Name')" title="Editar">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </button>
+                                            <form asp-action="DeleteCompany" method="post" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta empresa? Todos los usuarios y documentos asociados perderán su tenant.');" style="display:inline;">
+                                                <input type="hidden" name="id" value="@company.Id" />
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Crear Empresa -->
+    <div class="modal fade" id="createCompanyModal" tabindex="-1" aria-labelledby="createCompanyModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-dark">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title" id="createCompanyModalLabel"><i class="bi bi-plus-circle-fill me-2"></i>Registrar Nueva Empresa</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form asp-action="CreateCompany" method="post">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nombre de la Empresa:</label>
+                            <input type="text" name="Name" class="form-control" placeholder="ej. Empresa Maestra" required />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn text-dark fw-bold" style="background-color: #E8D1A7;">Crear Empresa</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Empresa -->
+    <div class="modal fade" id="editCompanyModal" tabindex="-1" aria-labelledby="editCompanyModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-dark">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title" id="editCompanyModalLabel"><i class="bi bi-pencil-square me-2"></i>Editar Empresa</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form asp-action="EditCompany" method="post">
+                    <input type="hidden" name="id" id="editCompanyId" />
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nombre de la Empresa:</label>
+                            <input type="text" name="name" id="editCompanyName" class="form-control" required />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn text-white fw-bold bg-dark">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openEditCompany(id, name) {
+        document.getElementById('editCompanyId').value = id;
+        document.getElementById('editCompanyName').value = name;
+        
+        var editModal = new bootstrap.Modal(document.getElementById('editCompanyModal'));
+        editModal.show();
+    }
+</script>

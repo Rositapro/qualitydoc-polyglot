@@ -1,0 +1,147 @@
+@model IEnumerable<QualityDocc.Domain.Entities.Document>
+
+<div class="container mt-4">
+    <h2>Búsqueda de Documentos</h2>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong><i class="bi bi-exclamation-triangle-fill"></i> ¡Alto ahí!</strong> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <form asp-controller="Author" asp-action="Search" method="get" class="row g-3 mb-4 align-items-end">
+        <div class="col-auto">
+            <label class="form-label">Norma ISO:</label>
+            <select name="isoId" class="form-select">
+                <option value="">-- Todas --</option>
+                @foreach (var iso in (IEnumerable<QualityDocc.Domain.Entities.Iso>)ViewBag.Isos)
+                {
+                    <option value="@iso.Id">@iso.Name</option>
+                }
+            </select>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">Filtrar</button>
+        </div>
+    </form>
+
+    <table class="table table-hover mt-3">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Título y Versiones</th>
+                <th>Norma ISO</th>
+                <th>Estado General</th>
+                <th scope="col">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>QD-@item.Id</td>
+
+                    <td>
+                        <div class="fw-bold">@item.Title</div>
+                        <div class="small text-muted mb-2">@item.Description</div>
+                        
+                        <!-- Collapsible Version History -->
+                        <div>
+                            <button class="btn btn-sm btn-link p-0 text-decoration-none text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#versions-@item.Id" aria-expanded="false" aria-controls="versions-@item.Id" style="font-size: 0.8rem;">
+                                <i class="bi bi-clock-history me-1"></i> Ver Historial de Versiones (@(item.Versions?.Count ?? 0))
+                            </button>
+                            <div class="collapse mt-2" id="versions-@item.Id">
+                                <ul class="list-group list-group-flush border rounded-3 p-2 bg-light shadow-sm" style="font-size: 0.85rem;">
+                                    @if (item.Versions != null && item.Versions.Any())
+                                    {
+                                        foreach (var ver in item.Versions.OrderByDescending(v => v.VersionNumber))
+                                        {
+                                            <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center py-2 px-1 border-light">
+                                                <div>
+                                                    <span class="fw-bold text-dark">v@(ver.VersionNumber.ToString("0.0"))</span>
+                                                    <span class="text-muted ms-2" style="font-size: 0.75rem;">@ver.DateCreate?.ToString("dd/MM/yyyy HH:mm")</span>
+                                                    <div class="text-muted fst-italic mt-1" style="font-size: 0.75rem;">
+                                                        <strong>Cambios:</strong> @ver.ChangeLog
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    @if (ver.Status == "Vigente")
+                                                    {
+                                                        <span class="badge bg-success me-2">Vigente</span>
+                                                        @if (!string.IsNullOrEmpty(ver.FileUrl))
+                                                        {
+                                                            <a href="@ver.FileUrl" target="_blank" class="btn btn-sm btn-outline-success p-1 py-0" title="Descargar Versión Vigente">
+                                                                <i class="bi bi-download"></i>
+                                                            </a>
+                                                        }
+                                                    }
+                                                    else if (ver.Status == "Obsoleto")
+                                                    {
+                                                        <span class="badge bg-secondary me-2">Obsoleto</span>
+                                                        <span class="text-muted" title="Las versiones obsoletas no se pueden descargar (Solo Auditoría)">
+                                                            <i class="bi bi-lock-fill text-muted"></i>
+                                                        </span>
+                                                    }
+                                                    else if (ver.Status == "En Revisión")
+                                                    {
+                                                        <span class="badge bg-info text-white me-2">En Revisión</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-warning text-dark me-2">@ver.Status</span>
+                                                    }
+                                                </div>
+                                            </li>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <li class="list-group-item bg-transparent py-2 text-muted fst-italic">Sin versiones registradas.</li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                    </td>
+
+                    <td>@(item.Iso?.Name ?? "Sin ISO")</td>
+
+                    <td>
+                        @if (item.WorkflowState == QualityDocc.Domain.Entities.DocumentStatus.Aprobado)
+                        {
+                            <span class="badge bg-success">Autorizado</span>
+                        }
+                        else if (item.WorkflowState == QualityDocc.Domain.Entities.DocumentStatus.Revision)
+                        {
+                            <span class="badge bg-info text-white">En Revisión</span>
+                        }
+                        else if (item.WorkflowState == QualityDocc.Domain.Entities.DocumentStatus.Rechazado)
+                        {
+                            <span class="badge bg-danger">Rechazado</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning text-dark">@item.WorkflowState</span>
+                        }
+                    </td>
+
+                    <td>
+                        @if (item.WorkflowState != QualityDocc.Domain.Entities.DocumentStatus.Revision)
+                        {
+                            <a asp-controller="Author" asp-action="Upload" asp-route-id="@item.Id" class="btn btn-sm text-white" style="background-color: #9D9167;" title="Editar Documento">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="text-muted" title="Bloqueado: En revisión por el autorizador">
+                                <i class="bi bi-lock-fill"></i>
+                            </span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

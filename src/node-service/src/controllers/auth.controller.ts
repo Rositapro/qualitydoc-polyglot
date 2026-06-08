@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 
 /**
- * Endpoint POST: Iniciar sesión (simulado)
- * Replica la lógica de la API de PHP en ConsultaGestion/api/simulador_odeth.php
+ * Endpoint POST: Iniciar sesión
+ * Valida las credenciales contra la API central de .NET.
  */
 export const loginUser = async (
   req: Request,
@@ -21,22 +21,56 @@ export const loginUser = async (
       return;
     }
 
-    console.log(`Inicio de sesión exitoso (simulado) para el usuario: ${usuario.trim()}`);
+    // URL de la API central de autenticación
+    const authApiUrl = process.env.AUTH_API_URL || 'http://admin-dotnet:8080/api/login';
 
-    // Determinar la empresa simulada según el correo ingresado
-    const emailLower = usuario.trim().toLowerCase();
-    const empresaid = (emailLower.includes('2') || emailLower.includes('empresa2')) ? 2 : 1;
+    try {
+      // Hacer petición POST a .NET
+      const authResponse = await globalThis.fetch(authApiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: usuario.trim(),
+          password: password
+        })
+      });
 
-    // Retornar datos de usuario simulados
-    res.status(200).json({
-      success: true,
-      user: {
-        idusuario: 99,
-        nombre: "Rosalinda (Simulada por API)",
-        rol: "Administrador",
-        empresaid: empresaid
+      if (authResponse.ok) {
+        const responseData = await authResponse.json() as any;
+
+        if (responseData && responseData.success) {
+          // Responder al frontend con el usuario de manera exitosa
+          res.status(200).json({
+            success: true,
+            user: {
+              idusuario: Number(responseData.user.idusuario),
+              nombre: responseData.user.nombreusuario,
+              rol: responseData.user.rol,
+              empresaid: Number(responseData.user.empresaid),
+              empresanombre: responseData.user.empresanombre || "Empresa"
+            }
+          });
+          return;
+        }
       }
-    });
+
+      // Si la respuesta no es 200/OK o success no es true (ej. 401 de .NET)
+      res.status(401).json({
+        success: false,
+        error: 'Credenciales incorrectas.'
+      });
+
+    } catch (apiError: any) {
+      console.error('Error al conectar con la API de autenticación externa:', apiError);
+      res.status(500).json({
+        success: false,
+        error: 'Error al conectar con el servidor de autenticación central.',
+        details: apiError.message
+      });
+    }
+
   } catch (error: any) {
     console.error('Error al procesar el login:', error);
     res.status(500).json({

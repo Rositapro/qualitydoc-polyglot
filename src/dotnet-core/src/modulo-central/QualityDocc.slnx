@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="QualityDocc.Application/QualityDocc.Application.csproj" />
+  <Project Path="QualityDocc.Domain/QualityDocc.Domain.csproj" />
+  <Project Path="QualityDocc.Infrastructure/QualityDocc.Infrastructure.csproj" />
+  <Project Path="QualityDocc.MVC/QualityDocc.MVC.csproj" />
+</Solution>

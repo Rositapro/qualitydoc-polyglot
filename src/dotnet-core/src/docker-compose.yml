@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # Tu base de datos
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-CU14-ubuntu-22.04
+    container_name: QualityDoc_SQLServer
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Document2026!
+    ports:
+      - "1442:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+
+  # Tu App .NET
+  admin-net:
+    build: 
+      context: ./modulo-central
+      dockerfile: Dockerfile
+    volumes:
+      # Ruta corregida sin el /src repetido
+      - ./modulo-central/QualityDocc.MVC/wwwroot/uploads:/app/wwwroot/uploads
+
+  # Nginx
+  nginx:
+    image: nginx:1.27.0-alpine
+    container_name: nginx_proxy
+    ports:
+      - "9000:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      # Ruta corregida para Nginx
+      - ./modulo-central/QualityDocc.MVC/wwwroot/uploads:/usr/share/nginx/html/uploads:ro
+    depends_on:
+      - admin-net
+
+  # PHP
+  portal-php:
+    image: php:8.2.20-apache
+    volumes:
+      # Ruta corregida para PHP
+      - ./modulo-central/QualityDocc.MVC/wwwroot/uploads:/var/www/html/uploads
+
+  # Node.js
+  indexador-node:
+    image: node:18.20.3-alpine
+    volumes:
+      # Ruta corregida para Node.js
+      - ./modulo-central/QualityDocc.MVC/wwwroot/uploads:/app/docs
+
+# Definición de volúmenes mínimos necesarios
+volumes:
+  mssql_data:

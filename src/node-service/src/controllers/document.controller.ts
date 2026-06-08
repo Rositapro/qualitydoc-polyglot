@@ -29,14 +29,23 @@ export const createDocument = async (
       return;
     }
 
-    // Crear y guardar el documento en la base de datos
+    const cleanTitle = title.trim();
+    const cleanEmpresaId = empresaid ? Number(empresaid) : 1;
+
+    // Eliminar versiones anteriores del mismo documento para la misma empresa
+    await DocumentModel.deleteMany({
+      title: cleanTitle,
+      empresaid: cleanEmpresaId
+    });
+
+    // Crear y guardar la versión vigente en la base de datos
     const newDocument = new DocumentModel({
-      title: title.trim(),
+      title: cleanTitle,
       fileExtension: fileExtension.trim().toLowerCase(),
       metadata: metadata || {},
       tags: Array.isArray(tags) ? tags.map(t => String(t).trim()) : [],
       textContent: textContent.trim(),
-      empresaid: empresaid ? Number(empresaid) : 1
+      empresaid: cleanEmpresaId
     });
 
     const savedDocument = await newDocument.save();

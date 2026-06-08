@@ -1,0 +1,497 @@
+/* Estilos Personalizados: Sistema de Gestión Documental (SGD) */
+/* Estilo: Académico, Académico-Elegante (Tonos Café y Beige) */
+
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+    /* Paleta de Colores Café, Bronce y Beige */
+    --bg-color: #f7f4ed;            /* Crema/Beige muy claro para el fondo */
+    --card-bg: rgba(255, 255, 255, 0.95);
+    --border-color: #e5dec9;        /* Borde beige suave */
+    
+    --color-primary: #5c3a21;       /* Café Chocolate */
+    --color-primary-hover: #4a2e1a; /* Café más oscuro */
+    --color-accent: #c5a059;        /* Bronce/Oro viejo */
+    --color-accent-hover: #b48e47;  
+    --color-dark: #23170f;          /* Espresso casi negro */
+    
+    --color-vigente-bg: #e2f0d9;    /* Verde salvia suave */
+    --color-vigente-text: #2e5618;
+    --color-obsoleto-bg: #fce4d6;   /* Rosa/Terracota suave */
+    --color-obsoleto-text: #843c0c;
+    
+    --text-main: #332720;           /* Café oscuro para lectura */
+    --text-muted: #72635a;          /* Café grisáceo */
+    
+    /* Tipografías */
+    --font-title: 'Playfair Display', serif;
+    --font-body: 'Lora', serif;
+    --font-sans: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Estilos de Cuerpo y Layout */
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    font-family: var(--font-body);
+    font-size: 1rem;
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+/* Tipografía de Encabezados */
+h1, h2, h3, h4, h5, h6, .brand-font {
+    font-family: var(--font-title);
+    color: var(--color-dark);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+/* Layout Principal con Sidebar */
+.app-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar Elegante (Chocolate Oscuro) */
+.sidebar {
+    width: 280px;
+    background-color: var(--color-dark);
+    color: #f5efe6;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+}
+
+.sidebar-header {
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(197, 160, 89, 0.2);
+    margin-bottom: 1.5rem;
+}
+
+.sidebar-brand {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-accent);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sidebar-brand:hover {
+    color: #fff;
+}
+
+.nav-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex-grow: 1;
+}
+
+.nav-item-link {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.8rem 1rem;
+    color: #dfd7cb;
+    text-decoration: none;
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    border-radius: 6px;
+    transition: all 0.25s ease;
+    border-left: 3px solid transparent;
+}
+
+.nav-item-link i {
+    font-size: 1.2rem;
+    color: var(--color-accent);
+    transition: transform 0.25s ease;
+}
+
+.nav-item-link:hover {
+    background-color: rgba(197, 160, 89, 0.1);
+    color: #fff;
+    border-left-color: var(--color-accent);
+    padding-left: 1.25rem;
+}
+
+.nav-item-link:hover i {
+    transform: scale(1.1);
+}
+
+.nav-item-link.active {
+    background-color: var(--color-primary);
+    color: #fff;
+    border-left-color: var(--color-accent);
+}
+
+.nav-item-link.active i {
+    color: #fff;
+}
+
+/* Área de Contenido Principal */
+.main-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg-color);
+}
+
+/* Top Header */
+.top-header {
+    background-color: #ffffff;
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.top-header-title {
+    font-size: 1.3rem;
+    margin: 0;
+}
+
+.user-profile-badge {
+    background-color: #f3efe6;
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--color-primary);
+}
+
+/* Tarjetas Premium */
+.card-elegant {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(8c, 62, 33, 0.05);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-elegant:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(8c, 62, 33, 0.08);
+}
+
+.card-elegant-header {
+    background-color: #fbf9f5;
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.2rem 1.5rem;
+}
+
+.card-elegant-body {
+    padding: 1.5rem;
+}
+
+/* Tarjetas de Estadísticas */
+.stat-card {
+    border-left: 4px solid var(--color-accent) !important;
+}
+
+.stat-val {
+    font-size: 2.2rem;
+    font-family: var(--font-title);
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+/* Botones Elegantes */
+.btn-elegant-primary {
+    background-color: var(--color-primary);
+    color: #fff;
+    border: 1px solid var(--color-primary);
+    font-family: var(--font-sans);
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border-radius: 6px;
+    padding: 0.5rem 1.25rem;
+}
+
+.btn-elegant-primary:hover, .btn-elegant-primary:focus {
+    background-color: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(92, 58, 33, 0.2);
+}
+
+.btn-elegant-outline {
+    background-color: transparent;
+    color: var(--color-primary);
+    border: 1.5px solid var(--color-primary);
+    font-family: var(--font-sans);
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border-radius: 6px;
+    padding: 0.5rem 1.25rem;
+}
+
+.btn-elegant-outline:hover {
+    background-color: var(--color-primary);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.btn-elegant-accent {
+    background-color: var(--color-accent);
+    color: #fff;
+    border: 1px solid var(--color-accent);
+    font-family: var(--font-sans);
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border-radius: 6px;
+    padding: 0.5rem 1.25rem;
+}
+
+.btn-elegant-accent:hover {
+    background-color: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(197, 160, 89, 0.2);
+}
+
+/* Acciones rápidas / Botones pequeños de tabla */
+.btn-action-table {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    background-color: #fff;
+    color: var(--color-primary);
+    transition: all 0.25s ease;
+    text-decoration: none;
+}
+
+.btn-action-table:hover {
+    background-color: var(--color-primary);
+    color: #fff;
+    border-color: var(--color-primary);
+    transform: scale(1.08);
+}
+
+.btn-action-table.download-btn:hover {
+    background-color: var(--color-accent);
+    border-color: var(--color-accent);
+    color: #fff;
+}
+
+/* Tabla Elegante */
+.table-elegant {
+    width: 100%;
+    margin-bottom: 0;
+    font-family: var(--font-sans);
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table-elegant th {
+    background-color: #f3efe6;
+    color: var(--color-dark);
+    font-weight: 600;
+    padding: 1rem;
+    border-bottom: 2px solid var(--border-color);
+    font-size: 0.9rem;
+}
+
+.table-elegant td {
+    padding: 1.1rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-main);
+    vertical-align: middle;
+    font-size: 0.95rem;
+    background-color: #ffffff;
+    transition: background-color 0.2s ease;
+}
+
+.table-elegant tr:hover td {
+    background-color: #faf8f5;
+}
+
+/* Badges de Estados */
+.badge-status {
+    padding: 0.35em 0.8em;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 50px;
+    display: inline-block;
+    font-family: var(--font-sans);
+}
+
+.badge-vigente {
+    background-color: var(--color-vigente-bg);
+    color: var(--color-vigente-text);
+}
+
+.badge-obsoleto {
+    background-color: var(--color-obsoleto-bg);
+    color: var(--color-obsoleto-text);
+}
+
+.badge-iso {
+    background-color: #edeae2;
+    color: var(--color-primary);
+    border: 1px solid var(--border-color);
+}
+
+/* Estilos de Login */
+.login-body {
+    background: linear-gradient(135deg, #23170f 0%, #5c3a21 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+}
+
+.login-card {
+    background-color: #fff;
+    border-radius: 16px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    max-width: 480px;
+    width: 100%;
+    padding: 2.5rem;
+    border: 1px solid rgba(197, 160, 89, 0.3);
+}
+
+.login-logo {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-logo i {
+    font-size: 3rem;
+    color: var(--color-accent);
+}
+
+.form-control-elegant {
+    border: 1px solid var(--border-color);
+    background-color: #fcfbfa;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-family: var(--font-sans);
+    color: var(--text-main);
+    transition: all 0.3s ease;
+}
+
+.form-control-elegant:focus {
+    border-color: var(--color-accent);
+    background-color: #fff;
+    box-shadow: 0 0 0 0.25rem rgba(197, 160, 89, 0.2);
+    outline: none;
+}
+
+.form-label-elegant {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--color-primary);
+    margin-bottom: 0.5rem;
+}
+
+/* Línea de tiempo de auditoría */
+.timeline-elegant {
+    border-left: 2px solid var(--border-color);
+    padding-left: 1.5rem;
+    margin-left: 1rem;
+    position: relative;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -29px;
+    top: 5px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--color-accent);
+    border: 2px solid var(--bg-color);
+}
+
+.timeline-item.visualizacion::before {
+    background-color: #3182ce;
+}
+
+.timeline-item.descarga::before {
+    background-color: #38a169;
+}
+
+.timeline-item.sugerencia::before {
+    background-color: #805ad5;
+}
+
+.timeline-date {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-family: var(--font-sans);
+}
+
+.timeline-text {
+    font-size: 0.95rem;
+}
+
+/* Visor de Documento simulado */
+.visor-container {
+    background-color: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 2.5rem;
+    min-height: 400px;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.02);
+}
+
+.visor-watermark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    font-size: 5rem;
+    color: rgba(197, 160, 89, 0.05);
+    font-family: var(--font-title);
+    pointer-events: none;
+    user-select: none;
+}
+
+/* Scrollbar Elegante */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-color);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c5beb1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}

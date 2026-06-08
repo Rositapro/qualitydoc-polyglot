@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/Elementos de la solución/">
+    <File Path="docker-compose.yml" />
+    <File Path="nginx.conf" />
+  </Folder>
+  <Folder Name="/modulo-central/">
+    <Project Path="modulo-central/QualityDocc.Application/QualityDocc.Application.csproj" />
+    <Project Path="modulo-central/QualityDocc.Domain/QualityDocc.Domain.csproj" />
+    <Project Path="modulo-central/QualityDocc.Infrastructure/QualityDocc.Infrastructure.csproj" />
+    <Project Path="modulo-central/QualityDocc.MVC/QualityDocc.MVC.csproj" />
+  </Folder>
+</Solution>

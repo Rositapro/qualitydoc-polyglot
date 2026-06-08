@@ -1,26 +1,63 @@
--- Script de creación de esquemas y datos semilla para PostgreSQL
--- Módulo de Consulta Pública
--- Integrante: Rosalinda Cedillo Osornio
+-- Base de Datos: sgd_db (PostgreSQL)
+-- Script de inicialización y estructura
 
-CREATE TABLE IF NOT EXISTS DocumentosVigentes ( 
-    idOriginal INT PRIMARY KEY,
-    tituloDocumento VARCHAR(200) NOT NULL,
-    rutaArchivo VARCHAR(500) NOT NULL,
-    empresaId INT NOT NULL,
-    fechaAprobacion TIMESTAMP NOT NULL
+-- Eliminar tablas si existen para garantizar una recreación limpia
+DROP TABLE IF EXISTS sugerencias CASCADE;
+DROP TABLE IF EXISTS logsconsultas CASCADE;
+DROP TABLE IF EXISTS documento CASCADE;
+DROP TABLE IF EXISTS usuarios CASCADE;
+
+-- 1. Tabla: usuarios
+CREATE TABLE usuarios (
+    idusuario VARCHAR(50) PRIMARY KEY,
+    nombreusuario VARCHAR(100) NOT NULL,
+    rol VARCHAR(50) NOT NULL, -- e.g. admin, colaborador, auditor
+    empresaid INT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS LogsConsultas ( 
-    idLog SERIAL PRIMARY KEY,
-    idDocumento INT NOT NULL,
-    nombreUsuario VARCHAR(100) NOT NULL,
-    fechaConsulta TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_documento FOREIGN KEY (idDocumento) REFERENCES DocumentosVigentes(idOriginal)
+-- 2. Tabla: documento
+CREATE TABLE documento (
+    iddocumento SERIAL PRIMARY KEY,
+    titulodocumento VARCHAR(255) NOT NULL,
+    codigo VARCHAR(50) NOT NULL,
+    version VARCHAR(20) NOT NULL,
+    idiso VARCHAR(50) NOT NULL, -- e.g. ISO 9001, ISO 27001
+    estado VARCHAR(20) NOT NULL CHECK (estado IN ('vigente', 'obsoleto')),
+    empresaid INT NOT NULL,
+    rutaarchivo VARCHAR(255) NULL
 );
 
--- Insertar datos semilla de prueba si no existen
-INSERT INTO DocumentosVigentes (idOriginal, tituloDocumento, rutaArchivo, empresaId, fechaAprobacion) 
-VALUES 
-(101, 'Manual de Ensamble de Motor', 'docs/empresa1/manual_ensamble.pdf', 1, '2026-05-01 10:00:00'), 
-(102, 'Protocolo de Higiene de Planta', 'docs/empresa2/protocolo_higiene.pdf', 2, '2026-05-02 11:30:00')
-ON CONFLICT (idOriginal) DO NOTHING;
+-- 3. Tabla: logsconsultas
+CREATE TABLE logsconsultas (
+    idlog SERIAL PRIMARY KEY,
+    idusuario VARCHAR(50) NOT NULL,
+    iddocumento INT NOT NULL,
+    accion VARCHAR(50) NOT NULL CHECK (accion IN ('visualizacion', 'descarga', 'sugerencia')),
+    empresaid INT NOT NULL,
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_logs_usuario FOREIGN KEY (idusuario) REFERENCES usuarios(idusuario) ON DELETE CASCADE,
+    CONSTRAINT fk_logs_documento FOREIGN KEY (iddocumento) REFERENCES documento(iddocumento) ON DELETE CASCADE
+);
+
+-- 4. Tabla: sugerencias
+CREATE TABLE sugerencias (
+    idsugerencia SERIAL PRIMARY KEY,
+    iddocumento INT NOT NULL,
+    idusuario VARCHAR(50) NOT NULL,
+    comentario TEXT NOT NULL,
+    empresaid INT NOT NULL,
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_sugerencias_usuario FOREIGN KEY (idusuario) REFERENCES usuarios(idusuario) ON DELETE CASCADE,
+    CONSTRAINT fk_sugerencias_documento FOREIGN KEY (iddocumento) REFERENCES documento(iddocumento) ON DELETE CASCADE
+);
+
+-- Indices para optimizar el filtrado multi-tenencia
+CREATE INDEX idx_usuarios_empresa ON usuarios(empresaid);
+CREATE INDEX idx_documento_empresa ON documento(empresaid);
+CREATE INDEX idx_logs_empresa ON logsconsultas(empresaid);
+CREATE INDEX idx_sugerencias_empresa ON sugerencias(empresaid);
+
+-- ==========================================
+-- DATOS SEMILLA (Seed Data)
+-- ==========================================
+-- Se inicia con la base de datos vacía para permitir registros limpios desde la aplicación.

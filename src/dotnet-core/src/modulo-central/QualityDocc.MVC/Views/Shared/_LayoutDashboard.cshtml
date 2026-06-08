@@ -1,0 +1,76 @@
+<!-- Views/Shared/_LayoutDashboard.cshtml -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+            :root {
+                --dark-espresso: #1A130E;
+                --card-brown-light: #4A372C;
+                --champagne-ivory: #F5EBE1;
+                --muted-champagne: #C2B3A5;
+            }
+
+            body {
+                background-color: var(--dark-espresso);
+                color: var(--champagne-ivory);
+                min-height: 100vh;
+                display: flex;
+            }
+            /* Sidebar estilizado */
+            .sidebar {
+                width: 250px;
+                background-color: var(--card-brown-light);
+                padding: 20px;
+                border-right: 1px solid var(--muted-champagne);
+            }
+
+            .nav-link {
+                color: var(--champagne-ivory);
+                margin-bottom: 10px;
+                display: block;
+                text-decoration: none;
+            }
+
+                .nav-link:hover {
+                    color: var(--muted-champagne);
+                }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h4>QualityDoc</h4>
+        <hr />
+        @await Html.PartialAsync("_Sidebar")
+    </div>
+    <main class="flex-grow-1 p-4">
+        @if (User.Identity != null && User.Identity.IsAuthenticated)
+        {
+            <div class="d-flex justify-content-between align-items-center mb-4 p-3 rounded shadow-sm" style="background-color: #241A13; border: 1px solid rgba(245, 235, 225, 0.15); color: #F5EBE1;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-shield-check text-warning fs-5"></i>
+                    <span class="fw-bold" style="font-family: 'Playfair Display', serif; font-size: 1rem; letter-spacing: 0.5px;">Acceso Seguro</span>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="user-profile-badge d-flex align-items-center gap-2 px-3 py-1.5 rounded" style="background-color: rgba(245, 235, 225, 0.1); border: 1px solid rgba(245, 235, 225, 0.2);">
+                        <i class="bi bi-person-circle fs-5 text-warning"></i>
+                        <span class="fw-bold">@User.Identity.Name</span>
+                        @{
+                            var userRole = "";
+                            if (User.IsInRole("SuperAdmin")) userRole = "SuperAdmin";
+                            else if (User.IsInRole("Administrator")) userRole = "Admin";
+                            else if (User.IsInRole("Reviewer")) userRole = "Revisor";
+                            else if (User.IsInRole("Author")) userRole = "Autor";
+                            else if (User.IsInRole("Reader")) userRole = "Lector";
+                        }
+                        <span class="badge" style="font-size: 0.75rem; background-color: #734F31 !important; color: #F5EBE1;">@userRole</span>
+                    </div>
+                </div>
+            </div>
+        }
+        @RenderBody()
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

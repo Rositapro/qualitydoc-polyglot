@@ -463,7 +463,7 @@
   <div id="login-wrapper">
     <div class="login-card">
       <h3 class="login-logo">QualityDoc</h3>
-      <p class="login-subtitle">Portal de Consulta & Indexación</p>
+      <p class="login-subtitle">Microservicio de indexación masiva y manejo de metadatos NoSQL</p>
       
       <!-- Mensaje de Error -->
       <div id="login-error" class="alert alert-danger d-none shadow-sm" role="alert"></div>
@@ -673,7 +673,7 @@
         // Mostrar empresa
         const companyBadge = document.getElementById('user-display-company');
         if (companyBadge) {
-          companyBadge.textContent = `Empresa: ${userObj.empresaid || 1}`;
+          companyBadge.textContent = `Empresa: ${userObj.empresanombre || userObj.empresaid || 1}`;
         }
         
         loginWrapper.classList.add('d-none');
