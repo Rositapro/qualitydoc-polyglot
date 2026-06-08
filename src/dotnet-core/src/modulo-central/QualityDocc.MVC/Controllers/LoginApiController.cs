@@ -39,6 +39,12 @@ namespace QualityDocc.MVC.Controllers
                 return Unauthorized(new { success = false, message = "Credenciales incorrectas." });
             }
 
+            // 4. Validación de Empresa Desactivada (Soft Deleted)
+            if (user.Company != null && user.Company.IsDeleted == true)
+            {
+                return Unauthorized(new { success = false, message = "La empresa asociada a esta cuenta ha sido desactivada." });
+            }
+
             // 4. Respuesta Exitosa (200 OK) - Estructura compatible con PHP y Node
             return Ok(new
             {

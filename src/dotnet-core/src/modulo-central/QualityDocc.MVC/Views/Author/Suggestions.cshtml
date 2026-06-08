@@ -1,0 +1,61 @@
+@model IEnumerable<QualityDocc.Domain.Entities.Suggestion>
+
+@{
+    Layout = "~/Views/Shared/_LayoutDashboard.cshtml";
+    ViewData["Title"] = "Sugerencias Recibidas";
+}
+
+<div class="container-fluid py-4" style="background-color: #ffffff; min-height: 100vh;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 style="color: #333; font-weight: 700;">
+            <i class="bi bi-chat-right-quote me-2" style="color: #734F31;"></i> Sugerencias Recibidas
+        </h2>
+        <a asp-action="Index" class="btn btn-outline-secondary">Volver al Dashboard</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead style="border-bottom: 2px solid #E8D1A7;">
+                <tr>
+                    <th scope="col" style="color: #734F31;">Ref</th>
+                    <th scope="col" style="color: #734F31;">Documento Relacionado</th>
+                    <th scope="col" style="color: #734F31;">Remitente (PHP)</th>
+                    <th scope="col" style="color: #734F31;">Sugerencia / Comentario</th>
+                    <th scope="col" style="color: #734F31;">Fecha Recibida</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var sug in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold">#@sug.Id</td>
+                            <td>
+                                <strong>@sug.Document?.Title</strong><br />
+                                <small class="text-muted"><code>QD-@sug.DocumentId</code></small>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border"><i class="bi bi-person-fill"></i> @sug.AuthorName</span>
+                            </td>
+                            <td class="text-dark" style="max-width: 400px; word-wrap: break-word; font-style: italic;">
+                                "@sug.Comment"
+                            </td>
+                            <td class="text-muted">
+                                @(sug.DateCreate?.ToString("dd/MM/yyyy HH:mm:ss") ?? "-")
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            No se han recibido sugerencias para tus documentos hasta el momento.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

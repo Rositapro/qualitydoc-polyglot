@@ -18,6 +18,7 @@ namespace QualityDocc.Domain.Entities
 
         // Propiedades de navegación
         public virtual ICollection<DocumentVersion> Versions { get; set; } = new List<DocumentVersion>();
+        public virtual ICollection<Suggestion> Suggestions { get; set; } = new List<Suggestion>();
 
         [ForeignKey("CompanyId")]
         public virtual Company Company { get; set; } = null!;

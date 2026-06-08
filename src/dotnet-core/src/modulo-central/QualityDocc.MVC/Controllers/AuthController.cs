@@ -31,12 +31,20 @@ namespace QualityDocc.MVC.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(string email, string password)
         {
-            // 1. Buscamos al usuario incluyendo su Rol
+            // 1. Buscamos al usuario incluyendo su Rol y Empresa
             var user = await _context.User
                         .Include(u => u.Role)
+                        .Include(u => u.Company)
                         .FirstOrDefaultAsync(u => u.Email == email);
 
-            // 2. Validación simple (Ojo: En producción usa PasswordHasher)
+            // 2. Validación de Empresa Desactivada (Soft Deleted)
+            if (user != null && user.Company != null && user.Company.IsDeleted == true)
+            {
+                ModelState.AddModelError(string.Empty, "La empresa asociada a esta cuenta ha sido desactivada.");
+                return View();
+            }
+
+            // 3. Validación simple (Ojo: En producción usa PasswordHasher)
             if (user != null && user.PasswordHash == password)
             {
                 // 3. Crear las Claims (La "identidad" del usuario)

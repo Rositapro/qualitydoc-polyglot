@@ -20,6 +20,7 @@ namespace QualityDocc.Infrastructure.Data
         public DbSet<Company> Company { get; set; }
         public DbSet<Role> Role { get; set; }
         public DbSet<Iso> Iso { get; set; }
+        public DbSet<Suggestion> Suggestions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -33,6 +34,7 @@ namespace QualityDocc.Infrastructure.Data
             modelBuilder.Entity<Company>().ToTable("Company");
             modelBuilder.Entity<Role>().ToTable("Role");
             modelBuilder.Entity<Iso>().ToTable("Iso");
+            modelBuilder.Entity<Suggestion>().ToTable("Suggestion");
 
 
             // Configurar relación: Un Documento tiene muchas Versiones

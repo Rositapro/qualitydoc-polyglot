@@ -82,9 +82,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'empresa'   => $empresa_id
             ]);
 
+            // 3. Obtener el ID original de .NET a partir del código (ej. QD-1002 -> 1002)
+            $codigo_parts = explode('-', $doc['codigo']);
+            $net_document_id = intval(end($codigo_parts));
+
+            // Enviar sugerencia a la API de .NET Core en segundo plano
+            $dotnet_url = "http://admin-dotnet:8080/api/suggestions";
+            $post_fields = json_encode([
+                'documentId' => $net_document_id,
+                'authorName' => $_SESSION['nombreusuario'] ?? $_SESSION['idusuario'] ?? 'Usuario PHP',
+                'comment' => $comentario,
+                'companyId' => intval($empresa_id)
+            ]);
+
+            $ch = curl_init($dotnet_url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $post_fields);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Content-Type: application/json',
+                'Content-Length: ' . strlen($post_fields)
+            ]);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 3);
+            curl_exec($ch);
+            curl_close($ch);
+
             // Confirmar transacción
             $pdo->commit();
-            $mensaje_exito = "¡Sugerencia guardada y registrada en auditoría exitosamente!";
+            $mensaje_exito = "¡Sugerencia guardada y enviada al autor en .NET exitosamente!";
             
         } catch (PDOException $e) {
             $pdo->rollBack();

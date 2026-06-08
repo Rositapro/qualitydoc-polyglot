@@ -312,5 +312,22 @@ namespace QualityDocc.MVC.Controllers
             // 3. Enviamos la lista de documentos a la vista Returned.cshtml
             return View(devueltos);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Suggestions()
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdString)) return RedirectToAction("Login", "Auth");
+            int currentUserId = int.Parse(userIdString);
+
+            // Cargar las sugerencias recibidas para los documentos del autor logueado
+            var suggestions = await _context.Suggestions
+                .Include(s => s.Document)
+                .Where(s => s.Document.AuthorId == currentUserId && s.Status == true)
+                .OrderByDescending(s => s.DateCreate)
+                .ToListAsync();
+
+            return View(suggestions);
+        }
     }
 }

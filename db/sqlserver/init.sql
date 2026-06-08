@@ -114,6 +114,21 @@ CREATE TABLE ApprovalFlow (
     Status BIT NOT NULL DEFAULT 1
 );
 
+CREATE TABLE Suggestion (
+    Id INT PRIMARY KEY IDENTITY(1,1),
+    DocumentId INT FOREIGN KEY REFERENCES Document(Id),
+    AuthorName VARCHAR(100) NOT NULL,
+    Comment VARCHAR(MAX) NOT NULL,
+    CompanyId INT NOT NULL,
+    DateCreate DATETIME NULL DEFAULT GETDATE(),
+    DateUpdate DATETIME NULL,
+    DateDelete DATETIME NULL,
+    IdUserCreate INT NULL,
+    IdUserUpdate INT NULL,
+    IdUserDelete INT NULL,
+    Status BIT NOT NULL DEFAULT 1
+);
+
 -- 5. Datos Iniciales
 -- Seed Roles (Matching the Authorize attributes in .NET: SuperAdmin, Administrator, Reviewer, Author, Reader)
 INSERT INTO Role (Name) VALUES ('SuperAdmin'), ('Administrator'), ('Reviewer'), ('Author'), ('Reader');
