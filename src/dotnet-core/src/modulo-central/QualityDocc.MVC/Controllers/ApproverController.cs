@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using QualityDocc.Application.Interfaces;
 using QualityDocc.Domain.Entities;
 using QualityDocc.Infrastructure.Data;
+using QualityDocc.Infrastructure.Utilities;
 using System;
 using System.IO;
 using System.Linq;
@@ -15,22 +17,27 @@ using System.Threading.Tasks;
 
 namespace QualityDocc.MVC.Controllers
 {
-    // 👇 2. El candado que protege todo el controlador
-    [Authorize(Roles = "Reviewer")]
-    public class ReviewerController : Controller
+    [Authorize(Roles = "Approver")]
+    public class ApproverController : Controller
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _environment;
         private readonly IConfiguration _configuration;
+        private readonly IMongoDocumentService _mongoService;
 
-        public ReviewerController(ApplicationDbContext context, IWebHostEnvironment environment, IConfiguration configuration)
+        public ApproverController(
+            ApplicationDbContext context, 
+            IWebHostEnvironment environment, 
+            IConfiguration configuration,
+            IMongoDocumentService mongoService)
         {
             _context = context;
             _environment = environment;
             _configuration = configuration;
+            _mongoService = mongoService;
         }
 
-        // --- DASHBOARD (Las 3 tarjetas) ---
+        // --- DASHBOARD (Las 3 tarjetas del Aprobador) ---
         [HttpGet]
         public async Task<IActionResult> Index()
         {
@@ -39,8 +46,8 @@ namespace QualityDocc.MVC.Controllers
             var currentUser = await _context.User.FindAsync(int.Parse(userIdString));
             if (currentUser == null) return RedirectToAction("Login", "Auth");
 
-            // Contamos los documentos según el Enum DocumentStatus filtrados por empresa
-            ViewBag.Pendientes = await _context.Document.CountAsync(d => d.CompanyId == currentUser.CompanyId && d.WorkflowState == DocumentStatus.Revision);
+            // Pendientes son los que tienen estado EnAutorizacion
+            ViewBag.Pendientes = await _context.Document.CountAsync(d => d.CompanyId == currentUser.CompanyId && d.WorkflowState == DocumentStatus.EnAutorizacion);
             ViewBag.Aprobados = await _context.Document.CountAsync(d => d.CompanyId == currentUser.CompanyId && d.WorkflowState == DocumentStatus.Aprobado);
             ViewBag.Devueltos = await _context.Document.CountAsync(d => d.CompanyId == currentUser.CompanyId && d.WorkflowState == DocumentStatus.Rechazado);
 
@@ -56,14 +63,14 @@ namespace QualityDocc.MVC.Controllers
             var currentUser = await _context.User.FindAsync(int.Parse(userIdString));
             if (currentUser == null) return RedirectToAction("Login", "Auth");
 
-            // Traemos solo los documentos en estado Revision de la empresa del revisor
-            var docsEnRevision = await _context.Document
+            // Traemos los documentos de la empresa del aprobador que estén EnAutorizacion
+            var docsEnAutorizacion = await _context.Document
                 .Include(d => d.Iso)
                 .Include(d => d.Versions)
-                .Where(d => d.CompanyId == currentUser.CompanyId && d.WorkflowState == DocumentStatus.Revision)
+                .Where(d => d.CompanyId == currentUser.CompanyId && d.WorkflowState == DocumentStatus.EnAutorizacion)
                 .ToListAsync();
 
-            return View(docsEnRevision);
+            return View(docsEnAutorizacion);
         }
 
         // --- VISTA DETALLADA PARA APROBAR/RECHAZAR ---
@@ -117,36 +124,74 @@ namespace QualityDocc.MVC.Controllers
                 return Forbid();
             }
 
-            if (actionType == "Aprobar")
+            if (actionType == "Aprobar") // "Aprobar" en el backend representa el "Aceptar" del aprobador
             {
-                // 1. Cambia estado a EnAutorizacion
-                doc.WorkflowState = DocumentStatus.EnAutorizacion;
-                doc.RejectionNotes = null; // Limpiamos notas si se aprueba por el revisor hacia el autorizador
-
-                // 2. Obtener la última versión registrada (que se envía a autorización)
-                var lastVersion = doc.Versions
-                    .OrderByDescending(v => v.VersionNumber)
-                    .FirstOrDefault();
-
-                if (lastVersion != null)
+                using (var transaction = await _context.Database.BeginTransactionAsync())
                 {
-                    lastVersion.Status = "En Autorización";
-                }
+                    try
+                    {
+                        // 1. Cambia estado a Aprobado
+                        doc.WorkflowState = DocumentStatus.Aprobado;
+                        doc.RejectionNotes = null; // Limpiamos notas de rechazo previas
 
-                await _context.SaveChangesAsync();
+                        // 2. Obtener la última versión registrada (que se está aprobando)
+                        var lastVersion = doc.Versions
+                            .OrderByDescending(v => v.VersionNumber)
+                            .FirstOrDefault();
+
+                        if (lastVersion != null)
+                        {
+                            // Brincar al siguiente entero (0.1 -> 1.0, 1.2 -> 2.0, etc.)
+                            double currentVersion = lastVersion.VersionNumber;
+                            double nextMajorVersion = Math.Floor(currentVersion) + 1.0;
+                            lastVersion.VersionNumber = nextMajorVersion;
+                            lastVersion.Status = "Vigente";
+                            lastVersion.ChangeLog = "APROBADO POR AUTORIZADOR: " + (notes ?? "Aprobación final.");
+
+                            // 3. Buscar versiones anteriores que estén como "Vigente" y marcarlas como "Obsoleto"
+                            var oldVersions = await _context.DocumentVersion
+                                .Where(v => v.DocumentId == id && v.Id != lastVersion.Id && v.Status == "Vigente")
+                                .ToListAsync();
+
+                            foreach (var oldVersion in oldVersions)
+                            {
+                                oldVersion.Status = "Obsoleto";
+                            }
+
+                            await _context.SaveChangesAsync();
+                            await transaction.CommitAsync();
+
+                            // 4. Extraer texto del PDF
+                            string pdfText = "";
+                            if (!string.IsNullOrEmpty(lastVersion.FileUrl))
+                            {
+                                var filePath = Path.Combine(_environment.WebRootPath, lastVersion.FileUrl.TrimStart('/'));
+                                pdfText = PdfParser.ExtractText(filePath);
+                            }
+
+                            // 5. Sincronizar a MongoDB (directamente) y PHP (PostgreSQL)
+                            await SynchronizeToExternalServices(doc, lastVersion, currentUser.CompanyId ?? 0, pdfText);
+                        }
+                        else
+                        {
+                            throw new Exception("No se encontró ninguna versión para autorizar.");
+                        }
+                    }
+                    catch (System.Exception ex)
+                    {
+                        await transaction.RollbackAsync();
+                        ModelState.AddModelError("", "Error al procesar la aprobación: " + ex.Message);
+                        return View("Review", doc);
+                    }
+                }
             }
             else if (actionType == "Rechazar")
             {
-                // Validación: Si rechaza, DEBE escribir notas
+                // Notas obligatorias si rechaza
                 if (string.IsNullOrWhiteSpace(notes))
                 {
-                    ModelState.AddModelError("", "Debes dejar una nota explicando los cambios requeridos.");
-                    // Si falla, regresamos a la misma vista con el error.
-                    var fullDoc = await _context.Document
-                        .Include(d => d.Versions)
-                        .Include(d => d.Iso)
-                        .FirstOrDefaultAsync(d => d.Id == id);
-                    return View("Review", fullDoc);
+                    ModelState.AddModelError("", "Debes escribir una nota explicando el motivo del rechazo.");
+                    return View("Review", doc);
                 }
 
                 // Cambia estado a Devuelto/Rechazado (5)
@@ -165,11 +210,10 @@ namespace QualityDocc.MVC.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            // Lo regresamos al panel principal (Dashboard)
             return RedirectToAction(nameof(Index));
         }
 
-        private async Task SynchronizeToExternalServices(Document doc, DocumentVersion lastVersion, int companyId)
+        private async Task SynchronizeToExternalServices(Document doc, DocumentVersion lastVersion, int companyId, string pdfText)
         {
             try
             {
@@ -177,7 +221,10 @@ namespace QualityDocc.MVC.Controllers
                 var author = await _context.User.FindAsync(doc.AuthorId);
                 var authorName = author?.Username ?? "Autor";
 
-                // 2. Leer archivo y convertir a Base64
+                // 2. Guardar en MongoDB directamente usando el C# Driver
+                await _mongoService.SaveApprovedDocumentAsync(doc, lastVersion, authorName, pdfText);
+
+                // 3. Leer archivo y convertir a Base64 para sincronizar a PHP
                 string base64File = "";
                 string fileName = "";
                 if (lastVersion != null && !string.IsNullOrEmpty(lastVersion.FileUrl))
@@ -191,13 +238,12 @@ namespace QualityDocc.MVC.Controllers
                     }
                 }
 
-                // 3. URLs de sincronización (configuración con fallbacks)
+                // 4. Configurar URLs
                 var phpUrl = _configuration["PhpServiceUrl"] ?? "http://web-php";
-                var searchUrl = _configuration["SearchServiceUrl"] ?? "http://search-service:3000";
 
                 using var client = new HttpClient();
 
-                // 4. Enviar a PHP (PostgreSQL)
+                // 5. Enviar a PHP (PostgreSQL)
                 var phpPayload = new
                 {
                     titulodocumento = doc.Title,
@@ -210,6 +256,7 @@ namespace QualityDocc.MVC.Controllers
                     nombrearchivo = fileName
                 };
 
+                // Determinar el endpoint adecuado en PHP (si es versión > 1.0, actualizará)
                 var phpEndpoint = (lastVersion != null && lastVersion.VersionNumber > 1.0)
                     ? "api/actualizar.php"
                     : "api/recibir.php";
@@ -220,33 +267,10 @@ namespace QualityDocc.MVC.Controllers
                     var errorContent = await phpResponse.Content.ReadAsStringAsync();
                     Console.WriteLine($"Error al sincronizar con PHP ({phpEndpoint}): {phpResponse.StatusCode} - {errorContent}");
                 }
-
-                // 5. Enviar a Node.js (MongoDB)
-                var searchPayload = new
-                {
-                    title = doc.Title,
-                    fileExtension = lastVersion != null ? lastVersion.Extension : ".pdf",
-                    empresaid = companyId,
-                    textContent = $"{doc.Title} {doc.Description ?? ""} {doc.Iso?.Name ?? ""}",
-                    metadata = new
-                    {
-                        author = authorName,
-                        version = lastVersion != null ? lastVersion.VersionNumber.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) : "1.0",
-                        iso = doc.Iso?.Name ?? "ISO 9001"
-                    },
-                    tags = new[] { "document", doc.Iso?.Name ?? "ISO 9001" }
-                };
-
-                var searchResponse = await client.PostAsJsonAsync($"{searchUrl}/api/documents", searchPayload);
-                if (!searchResponse.IsSuccessStatusCode)
-                {
-                    var errorContent = await searchResponse.Content.ReadAsStringAsync();
-                    Console.WriteLine($"Error al sincronizar con Node.js: {searchResponse.StatusCode} - {errorContent}");
-                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Excepción en sincronización: {ex.Message}");
+                Console.WriteLine($"Excepción en la sincronización: {ex.Message}");
             }
         }
     }

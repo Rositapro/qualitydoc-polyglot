@@ -131,7 +131,7 @@ CREATE TABLE Suggestion (
 
 -- 5. Datos Iniciales
 -- Seed Roles (Matching the Authorize attributes in .NET: SuperAdmin, Administrator, Reviewer, Author, Reader)
-INSERT INTO Role (Name) VALUES ('SuperAdmin'), ('Administrator'), ('Reviewer'), ('Author'), ('Reader');
+INSERT INTO Role (Name) VALUES ('SuperAdmin'), ('Administrator'), ('Reviewer'), ('Author'), ('Reader'), ('Approver');
 
 -- Seed Companies
 INSERT INTO Company (Name) VALUES ('Empresa Maestra'); -- ID 1

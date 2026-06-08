@@ -1,4 +1,4 @@
-﻿CREATE DATABASE DocumentManagement;
+CREATE DATABASE DocumentManagement;
 GO
 USE DocumentManagement;
 GO
@@ -60,7 +60,7 @@ CREATE TABLE ApprovalFlow (
 );
 
 -- 5. Datos Iniciales
-INSERT INTO Role (Name) VALUES ('SuperAdmin'), ('Administrador'), ('Revisor'), ('Autor'), ('Lector');
+INSERT INTO Role (Name) VALUES ('SuperAdmin'), ('Administrador'), ('Revisor'), ('Autor'), ('Lector'), ('Aprobador');
 INSERT INTO Company (Name) VALUES ('Empresa Maestra');
 INSERT INTO [User] (Username, PasswordHash, RoleId, CompanyId) VALUES ('superadmin', 'Document2026!', 1, NULL);
 INSERT INTO [User] (Username, PasswordHash, RoleId, CompanyId) VALUES ('admin_empresa', 'Document2026!', 2, 1);

@@ -50,6 +50,19 @@ try {
         'empresa' => $empresa_id
     ]);
 
+    // Consultar el historial de versiones del mismo código y empresa
+    $stmtHistory = $pdo->prepare("
+        SELECT iddocumento, version, estado, rutaarchivo
+        FROM documento
+        WHERE codigo = :codigo AND empresaid = :empresa
+        ORDER BY version DESC
+    ");
+    $stmtHistory->execute([
+        'codigo' => $doc['codigo'],
+        'empresa' => $empresa_id
+    ]);
+    $historial = $stmtHistory->fetchAll();
+
 } catch (PDOException $e) {
     echo "<div class='alert alert-danger font-sans'>Error de base de datos: " . htmlspecialchars($e->getMessage()) . "</div>";
     require_once __DIR__ . '/includes/footer.php';
@@ -141,6 +154,80 @@ try {
                         <p>No se pudo cargar el archivo físico de este documento. Asegúrese de que el archivo existe en el servidor o descárguelo directamente.</p>
                     </div>
                 <?php endif; ?>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Historial de Versiones -->
+<div class="row font-sans mt-4 mb-5">
+    <div class="col-12">
+        <div class="card-elegant">
+            <div class="card-elegant-header">
+                <h5 class="m-0"><i class="bi bi-clock-history me-2 text-warning"></i>Historial de Versiones del Documento</h5>
+            </div>
+            <div class="card-elegant-body">
+                <div class="table-responsive">
+                    <table class="table-elegant" style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th style="width: 80px;">ID</th>
+                                <th>Versión</th>
+                                <th>Estado</th>
+                                <th>Fecha de Carga</th>
+                                <th style="width: 250px;" class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (count($historial) > 0): ?>
+                                <?php foreach ($historial as $h): ?>
+                                    <tr class="<?php echo ($h['iddocumento'] == $id_documento) ? 'table-warning fw-bold' : ''; ?>">
+                                        <td class="text-muted">#<?php echo $h['iddocumento']; ?></td>
+                                        <td>
+                                            v<?php echo htmlspecialchars($h['version']); ?>
+                                            <?php if ($h['iddocumento'] == $id_documento): ?>
+                                                <span class="badge bg-primary ms-1" style="font-size: 0.7rem; color: white !important;">Actual</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <?php if ($h['estado'] === 'vigente'): ?>
+                                                <span class="badge badge-status badge-vigente" style="background-color: #d4edda !important; color: #155724 !important;">Vigente</span>
+                                            <?php else: ?>
+                                                <span class="badge badge-status badge-obsoleto" style="background-color: #f8d7da !important; color: #721c24 !important;">Obsoleto</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <?php 
+                                                $fecha = '-';
+                                                if (!empty($h['rutaarchivo'])) {
+                                                    // Extraer timestamp del final del nombre (e.g. _1780949415.pdf)
+                                                    if (preg_match('/_(\d+)\.(pdf|docx)$/i', $h['rutaarchivo'], $matches)) {
+                                                        $fecha = date('d/m/Y H:i:s', intval($matches[1]));
+                                                    }
+                                                }
+                                                echo htmlspecialchars($fecha);
+                                            ?>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex justify-content-center gap-2">
+                                                <a href="visor.php?id=<?php echo $h['iddocumento']; ?>" class="btn btn-sm btn-elegant-primary" title="Visualizar esta versión" style="text-decoration: none; padding: 4px 8px;">
+                                                    <i class="bi bi-eye"></i> Ver
+                                                </a>
+                                                <a href="descargar.php?id=<?php echo $h['iddocumento']; ?>" class="btn btn-sm btn-elegant-accent" title="Descargar esta versión" style="text-decoration: none; padding: 4px 8px;">
+                                                    <i class="bi bi-download"></i> Descargar
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">No hay versiones previas registradas.</td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

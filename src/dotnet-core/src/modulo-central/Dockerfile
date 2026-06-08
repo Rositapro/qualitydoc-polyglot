@@ -10,15 +10,19 @@ COPY ["QualityDocc.Application/QualityDocc.Application.csproj", "QualityDocc.App
 COPY ["QualityDocc.Domain/QualityDocc.Domain.csproj", "QualityDocc.Domain/"]
 COPY ["QualityDocc.Infrastructure/QualityDocc.Infrastructure.csproj", "QualityDocc.Infrastructure/"]
 COPY ["QualityDocc.MVC/QualityDocc.MVC.csproj", "QualityDocc.MVC/"]
+COPY ["QualityDocc.Tests/QualityDocc.Tests.csproj", "QualityDocc.Tests/"]
 
 # Restaurar dependencias
-RUN dotnet restore "QualityDocc.MVC/QualityDocc.MVC.csproj"
+RUN dotnet restore "QualityDocc.slnx"
 
 # Copiar todo el código fuente
 COPY . .
 
+# Ejecutar Pruebas Unitarias
+RUN dotnet test "QualityDocc.Tests/QualityDocc.Tests.csproj" -c Release
+
 # Compilar y publicar
-RUN dotnet publish "QualityDocc.MVC/QualityDocc.MVC.csproj" -c Release -o /app/publish
+RUN dotnet publish "QualityDocc.MVC/QualityDocc.MVC.csproj" -c Release -o /app/publish --no-restore
 
 # Fase de ejecución
 FROM mcr.microsoft.com/dotnet/aspnet:10.0

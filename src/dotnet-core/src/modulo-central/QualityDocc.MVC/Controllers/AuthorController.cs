@@ -89,45 +89,48 @@ namespace QualityDocc.MVC.Controllers
             if (id.HasValue && id > 0)
             {
                 // Buscamos el documento original en la base de datos
-                var document = await _context.Document.FindAsync(id);
+                var docEncontrado = await _context.Document.FindAsync(id);
 
-                // Verificación de seguridad: que exista y que pertenezca al autor logueado
-                // 🌟 CASO A: SI TRAE UN ID, VAMOS A CORREGIR UN DOCUMENTO EXISTENTE
-                if (id.HasValue && id > 0)
+                // Verificación de seguridad 1: que exista
+                if (docEncontrado == null) return NotFound();
+
+                // Verificación de seguridad 2: que pertenezca al autor logueado
+                if (docEncontrado.AuthorId != currentUserId)
                 {
-                    // Buscamos el documento original en la base de datos
-                    var docEncontrado = await _context.Document.FindAsync(id);
+                    // Guardamos el mensaje de error para mostrarlo en la vista
+                    TempData["ErrorMessage"] = "Acceso denegado: No tienes permiso para editar un documento que le pertenece a otro autor.";
 
-                    // Verificación de seguridad 1
-                    if (docEncontrado == null) return NotFound();
-
-                    // 👇 AQUÍ ES DONDE PONEMOS LO NUEVO 👇
-                    // Verificación de seguridad 2: que pertenezca al autor logueado
-                    if (document.AuthorId != currentUserId)
-                    {
-                        // Guardamos el mensaje de error para mostrarlo en la vista
-                        TempData["ErrorMessage"] = "Acceso denegado: No tienes permiso para editar un documento que le pertenece a otro autor.";
-
-                        // Lo regresamos a la pantalla de búsqueda
-                        return RedirectToAction("Search");
-                    }
-                    // 👆 HASTA AQUÍ LO NUEVO 👆
-
-                    // Buscamos la última versión registrada de este documento en el historial
-                    var lastVersion = await _context.DocumentVersion
-                        .Where(v => v.DocumentId == id)
-                        .OrderByDescending(v => v.VersionNumber)
-                        .FirstOrDefaultAsync();
-
-                    // Lógica de incremento automático: si existía la 0.1, sugerimos la 0.2
-                    double nextVersion = lastVersion != null ? lastVersion.VersionNumber + 0.1 : 0.1;
-
-                    // Redondeamos a un decimal para evitar errores de precisión de punto flotante (ej: 0.200000004)
-                    ViewBag.SuggestedVersion = Math.Round(nextVersion, 1);
-
-                    // Pasamos el documento encontrado a la vista para que los inputs se rellenen solos
-                    return View(document);
+                    // Lo regresamos a la pantalla de búsqueda
+                    return RedirectToAction("Search");
                 }
+
+                // Buscamos la última versión registrada de este documento en el historial
+                var lastVersion = await _context.DocumentVersion
+                    .Where(v => v.DocumentId == id)
+                    .OrderByDescending(v => v.VersionNumber)
+                    .FirstOrDefaultAsync();
+
+                // Lógica de incremento automático
+                double nextVersion = 0.1;
+                if (lastVersion != null)
+                {
+                    if (docEncontrado.WorkflowState == DocumentStatus.Rechazado ||
+                        docEncontrado.WorkflowState == DocumentStatus.Aprobado ||
+                        docEncontrado.WorkflowState == DocumentStatus.Vigente)
+                    {
+                        nextVersion = lastVersion.VersionNumber + 0.1;
+                    }
+                    else
+                    {
+                        nextVersion = lastVersion.VersionNumber;
+                    }
+                }
+
+                // Redondeamos a un decimal para evitar errores de precisión de punto flotante
+                ViewBag.SuggestedVersion = Math.Round(nextVersion, 1);
+
+                // Pasamos el documento encontrado a la vista para que los inputs se rellenen solos
+                return View(docEncontrado);
             }
 
             // 🌟 CASO B: SI NO TRAE ID, ES UN DOCUMENTO COMPLETAMENTE NUEVO
@@ -164,6 +167,17 @@ namespace QualityDocc.MVC.Controllers
             {
                 try
                 {
+                    // 0. Obtener el estado previo del documento si ya existe en la base de datos
+                    DocumentStatus? previousState = null;
+                    if (model.Id > 0)
+                    {
+                        var existingDoc = await _context.Document.AsNoTracking().FirstOrDefaultAsync(d => d.Id == model.Id);
+                        if (existingDoc != null)
+                        {
+                            previousState = existingDoc.WorkflowState;
+                        }
+                    }
+
                     // 1. PREPARA EL DOCUMENTO Y LLENA LOS DATOS DE AUDITORÍA
                     model.AuthorId = currentUserId;
                     model.CompanyId = user.CompanyId ?? 0;
@@ -186,11 +200,35 @@ namespace QualityDocc.MVC.Controllers
 
                     await _context.SaveChangesAsync();
 
-                    // 2. GUARDA LA VERSIÓN
+                    // 2. LÓGICA DE CÁLCULO DE LA VERSIÓN EN EL SERVIDOR
+                    double finalVersionNumber = 0.1;
+                    if (model.Id > 0)
+                    {
+                        var lastVersion = await _context.DocumentVersion
+                            .Where(v => v.DocumentId == model.Id)
+                            .OrderByDescending(v => v.VersionNumber)
+                            .FirstOrDefaultAsync();
+
+                        if (lastVersion != null)
+                        {
+                            if (previousState.HasValue && (previousState == DocumentStatus.Rechazado ||
+                                                           previousState == DocumentStatus.Aprobado ||
+                                                           previousState == DocumentStatus.Vigente))
+                            {
+                                finalVersionNumber = Math.Round(lastVersion.VersionNumber + 0.1, 1);
+                            }
+                            else
+                            {
+                                finalVersionNumber = lastVersion.VersionNumber;
+                            }
+                        }
+                    }
+
+                    // 3. GUARDA LA VERSIÓN
                     var version = new DocumentVersion
                     {
                         DocumentId = model.Id,
-                        VersionNumber = versionNumber,
+                        VersionNumber = finalVersionNumber,
                         FileUrl = "/uploads/" + uniqueFileName,
                         Extension = extension,
                         IdUserCreate = currentUserId,

@@ -11,7 +11,8 @@ namespace QualityDocc.Domain.Entities
             Aprobado = 2,
             Vigente = 3,
             Obsoleto = 4,
-            Rechazado = 5 // ¡Crucial para tu flujo!
+            Rechazado = 5, // ¡Crucial para tu flujo!
+            EnAutorizacion = 6
         }
     
 }

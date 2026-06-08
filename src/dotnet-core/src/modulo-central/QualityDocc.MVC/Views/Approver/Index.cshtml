@@ -1,0 +1,41 @@
+@{
+    ViewData["Title"] = "Panel de Autorizador";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4" style="color: #4a3b32;">Panel de Autorización de Calidad</h2>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <a href="@Url.Action("Pending", "Approver")" class="text-decoration-none">
+                <div class="p-4 rounded-3 d-flex justify-content-between align-items-center" style="background-color: #ebd5ab; color: white; min-height: 120px;">
+                    <div>
+                        <h6 class="fw-bold mb-1" style="letter-spacing: 1px;">PENDIENTES</h6>
+                        <h2 class="fw-bold mb-0">@ViewBag.Pendientes</h2>
+                    </div>
+                    <i class="bi bi-file-earmark-text fs-1 opacity-75"></i>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-4">
+            <div class="p-4 rounded-3 d-flex justify-content-between align-items-center" style="background-color: #9b9564; color: white; min-height: 120px;">
+                <div>
+                    <h6 class="fw-bold mb-1" style="letter-spacing: 1px;">APROBADOS</h6>
+                    <h2 class="fw-bold mb-0">@ViewBag.Aprobados</h2>
+                </div>
+                <i class="bi bi-file-earmark-check fs-1 opacity-75"></i>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="p-4 rounded-3 d-flex justify-content-between align-items-center" style="background-color: #6e4c30; color: white; min-height: 120px;">
+                <div>
+                    <h6 class="fw-bold mb-1" style="letter-spacing: 1px;">DEVUELTOS</h6>
+                    <h2 class="fw-bold mb-0">@ViewBag.Devueltos</h2>
+                </div>
+                <i class="bi bi-arrow-return-left fs-1 opacity-75"></i>
+            </div>
+        </div>
+    </div>
+</div>

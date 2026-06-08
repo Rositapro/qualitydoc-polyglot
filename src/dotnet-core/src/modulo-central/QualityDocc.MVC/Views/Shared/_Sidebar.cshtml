@@ -10,12 +10,21 @@
     <a href="/Author/Search" class="nav-link"><i class="bi bi-search"></i> Buscar Documentos</a>
     <a href="/Author/Returned" class="nav-link"><i class="bi bi-arrow-return-left"></i> Devueltos</a>
     <a href="/Author/Suggestions" class="nav-link"><i class="bi bi-chat-right-quote"></i> Sugerencias</a>
+    <a href="/SmartSearch/Index" class="nav-link"><i class="bi bi-search-heart"></i> Búsqueda Inteligente</a>
 }
 
 @if (User.IsInRole("Reviewer"))
 {
     <a href="/Reviewer/Index" class="nav-link"><i class="bi bi-speedometer2"></i> Dashboard Revisor</a>
     <a href="/Reviewer/Pending" class="nav-link"><i class="bi bi-clipboard-check"></i> Pendientes de Revisión</a>
+    <a href="/SmartSearch/Index" class="nav-link"><i class="bi bi-search-heart"></i> Búsqueda Inteligente</a>
+}
+
+@if (User.IsInRole("Approver"))
+{
+    <a href="/Approver/Index" class="nav-link"><i class="bi bi-speedometer2"></i> Dashboard Aprobador</a>
+    <a href="/Approver/Pending" class="nav-link"><i class="bi bi-clipboard-check"></i> Pendientes de Autorizar</a>
+    <a href="/SmartSearch/Index" class="nav-link"><i class="bi bi-search-heart"></i> Búsqueda Inteligente</a>
 }
 
 @if (User.IsInRole("SuperAdmin") || User.IsInRole("Administrator"))

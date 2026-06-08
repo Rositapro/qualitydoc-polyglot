@@ -156,11 +156,7 @@
                             </div>
                             <div class="col-md-4 mt-3 mt-md-0">
                                 <label class="form-label custom-label">Versión</label>
-                                <div class="input-group">
-                                    <button type="button" class="btn btn-version" onclick="changeVersion(-0.1)">-</button>
-                                    <input type="text" id="versionDisplay" name="VersionNumber" value="@(((double)(ViewBag.SuggestedVersion ?? 0.1)).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture))" class="form-control version-input" readonly />
-                                    <button type="button" class="btn btn-version" onclick="changeVersion(0.1)">+</button>
-                                </div>
+                                <input type="text" id="versionDisplay" name="VersionNumber" value="@(((double)(ViewBag.SuggestedVersion ?? 0.1)).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture))" class="form-control version-input bg-light" readonly />
                             </div>
                         </div>
 
@@ -232,15 +228,6 @@
         }
     }
 
-    function changeVersion(amount) {
-        let input = document.getElementById('versionDisplay');
-        let currentVal = parseFloat(input.value);
-        let newVal = Math.round((currentVal + amount) * 10) / 10;
-
-        if (newVal >= 0.1) {
-            input.value = newVal.toFixed(1);
-        }
-    }
 
     document.addEventListener("DOMContentLoaded", function () {
         // Buscamos el botón por su ID. ¡Asegúrate de que tu botón tenga id="btnSubmitAuth"!

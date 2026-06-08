@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.Cookies; // 👈 Añadido para el mane
 using Microsoft.EntityFrameworkCore;
 using QualityDocc.Application.Interfaces;
 using QualityDocc.Application.Services;
+using QualityDocc.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +28,7 @@ builder.Services.AddControllersWithViews();
 
 // 3. REGISTRAR EL SERVICIO CORE DE VERSIONES DE QUALITYDOC
 builder.Services.AddScoped<IDocumentService, DocumentService>();
+builder.Services.AddScoped<IMongoDocumentService, MongoDocumentService>();
 
 var app = builder.Build();
 

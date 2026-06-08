@@ -1,0 +1,48 @@
+@model IEnumerable<QualityDocc.Domain.Entities.Document>
+
+<div class="container mt-4">
+    <h2 class="mb-4" style="color: #4a3b32;">Documentos Pendientes de Autorización Final</h2>
+
+    <div class="table-responsive shadow-sm rounded">
+        <table class="table table-hover align-middle mb-0 bg-white">
+            <thead style="background-color: #e5d3b3; color: #4a3b32;">
+                <tr>
+                    <th class="py-3">ID</th>
+                    <th class="py-3">Título</th>
+                    <th class="py-3">Norma ISO</th>
+                    <th class="py-3">Versión</th>
+                    <th class="py-3 text-center">Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">
+                            No hay documentos pendientes de autorización en este momento.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold">QD-@item.Id</td>
+                            <td>@item.Title</td>
+                            <td>@(item.Iso?.Name ?? "Sin ISO")</td>
+                            <td>
+                                @(item.Versions?.OrderByDescending(v => v.VersionNumber).FirstOrDefault()?.VersionNumber.ToString("0.0") ?? "-")
+                            </td>
+                            <td class="text-center">
+                                <a href="@Url.Action("Review", "Approver", new { id = item.Id })" class="btn btn-sm px-3 text-white" style="background-color: #9b9564;">
+                                    Autorizar
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

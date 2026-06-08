@@ -1,0 +1,101 @@
+@model IEnumerable<System.Text.Json.Nodes.JsonNode>
+
+@{
+    ViewData["Title"] = "Búsqueda Inteligente";
+}
+
+<div class="container mt-4">
+    <div class="d-flex align-items-center mb-4">
+        <i class="bi bi-search-heart fs-1 me-3 text-warning" style="font-size: 2.5rem !important;"></i>
+        <div>
+            <h2 class="mb-0" style="color: #4a3b32; font-weight: 700;">Búsqueda Inteligente en MongoDB</h2>
+            <p class="text-muted mb-0">Busca en los metadatos e indexa el contenido completo (cuerpo) de tus archivos PDF.</p>
+        </div>
+    </div>
+
+    <!-- Barra de búsqueda principal -->
+    <div class="card shadow-sm border-0 p-4 mb-4" style="border-radius: 15px; background-color: #fcfaf5;">
+        <form method="get" action="@Url.Action("Index", "SmartSearch")" class="row g-3">
+            <div class="col-12">
+                <div class="input-group input-group-lg">
+                    <input type="text" name="q" class="form-control border-end-0" placeholder="Escribe palabras clave, normas o contenido del documento..." value="@ViewBag.SearchQuery" style="border-radius: 10px 0 0 10px; border-color: #ebd5ab; background-color: #fff;" required />
+                    <button type="submit" class="btn text-white px-4 border-start-0" style="background-color: #9b9564; border-radius: 0 10px 10px 0; border-color: #ebd5ab;">
+                        <i class="bi bi-search me-2"></i>Buscar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Listado de resultados -->
+    @if (Model != null && Model.Any())
+    {
+        <h5 class="mb-3 text-muted">Resultados encontrados (@Model.Count())</h5>
+        
+        <div class="row g-4">
+            @foreach (var doc in Model)
+            {
+                var title = doc["title"]?.ToString() ?? "Sin Título";
+                var fileExtension = doc["fileExtension"]?.ToString() ?? "pdf";
+                var body = doc["body"]?.ToString() ?? doc["textContent"]?.ToString() ?? "";
+                var metadata = doc["metadata"];
+                var author = metadata?["author"]?.ToString() ?? "Sistema";
+                var version = metadata?["version"]?.ToString() ?? "1.0";
+                var iso = metadata?["iso"]?.ToString() ?? "ISO General";
+                var docId = metadata?["documentId"]?.ToString();
+                
+                // Truncar el cuerpo a unos 250 caracteres para la vista previa
+                var snippet = body.Length > 250 ? body.Substring(0, 250) + "..." : body;
+
+                <div class="col-12">
+                    <div class="card shadow-sm border-0 p-4 h-100" style="border-radius: 12px; border-left: 5px solid #9b9564 !important; transition: transform 0.2s;">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <span class="badge bg-secondary mb-2 font-sans me-2">@iso</span>
+                                <span class="badge bg-light text-dark border mb-2 font-sans">v@(version)</span>
+                                <h4 class="fw-bold mb-1" style="color: #6e4c30;">@title</h4>
+                                <p class="text-muted mb-0" style="font-size: 0.85rem;">
+                                    <i class="bi bi-person me-1"></i> Autor: <strong>@author</strong>
+                                </p>
+                            </div>
+                            <span class="badge bg-dark font-sans text-uppercase">@fileExtension</span>
+                        </div>
+
+                        <hr class="my-3 opacity-50" />
+
+                        <div class="mb-3">
+                            <h6 class="fw-bold mb-1" style="color: #4a3b32; font-size: 0.9rem;"><i class="bi bi-file-earmark-text-fill me-1"></i> Vista previa del contenido extraído:</h6>
+                            <p class="text-muted fst-italic mb-0" style="font-size: 0.9rem; background-color: #faf8f5; padding: 10px; border-radius: 8px;">
+                                @(string.IsNullOrWhiteSpace(snippet) ? "No se pudo extraer texto indexado de este PDF." : snippet)
+                            </p>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            @if (!string.IsNullOrEmpty(docId))
+                            {
+                                <a href="/Home/Index" class="btn btn-sm text-white px-3" style="background-color: #9b9564;">
+                                    <i class="bi bi-file-earmark-check-fill me-1"></i> Ir al Portal Central
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else if (ViewBag.SearchQuery != null)
+    {
+        <div class="alert alert-warning text-center py-5 shadow-sm" style="border-radius: 15px; background-color: #fefcf7; border: 1px solid #ebd5ab;">
+            <i class="bi bi-folder-x display-1 text-warning opacity-75 mb-3 d-block"></i>
+            <h4 class="fw-bold" style="color: #6e4c30;">No se encontraron resultados</h4>
+            <p class="text-muted mb-0">Intenta buscar con palabras clave diferentes o verifica que el documento esté en estado <strong>Aprobado</strong>.</p>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5 text-muted opacity-75">
+            <i class="bi bi-search display-3 mb-3 d-block"></i>
+            <p>Ingresa una consulta en la barra superior para iniciar la búsqueda de documentos.</p>
+        </div>
+    }
+</div>

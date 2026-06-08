@@ -8,5 +8,6 @@
     <Project Path="modulo-central/QualityDocc.Domain/QualityDocc.Domain.csproj" />
     <Project Path="modulo-central/QualityDocc.Infrastructure/QualityDocc.Infrastructure.csproj" />
     <Project Path="modulo-central/QualityDocc.MVC/QualityDocc.MVC.csproj" />
+    <Project Path="modulo-central/QualityDocc.Tests/QualityDocc.Tests.csproj" />
   </Folder>
 </Solution>
