@@ -4,13 +4,13 @@
     ViewData["Title"] = "Gestión de Empresas - QualityDocc";
 }
 
-<div class="container-fluid py-4" style="color: #F5EBE1;">
+<div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="fw-bold m-0" style="color: #ffffff;"><i class="bi bi-building me-2 text-warning"></i>Gestión de Empresas</h2>
-            <p class="text-muted text-light-50 m-0">Agrega, actualiza y administra las empresas (tenants) registradas en la plataforma.</p>
+            <h2 class="fw-bold m-0" style="color: var(--color-primary);"><i class="bi bi-building me-2 text-warning"></i>Gestión de Empresas</h2>
+            <p class="text-muted m-0">Agrega, actualiza y administra las empresas (tenants) registradas en la plataforma.</p>
         </div>
-        <button type="button" class="btn text-dark fw-bold" style="background-color: #E8D1A7;" data-bs-toggle="modal" data-bs-target="#createCompanyModal">
+        <button type="button" class="btn text-white fw-bold" style="background-color: var(--color-primary);" data-bs-toggle="modal" data-bs-target="#createCompanyModal">
             <i class="bi bi-plus-circle-fill me-1"></i> Nueva Empresa
         </button>
     </div>
@@ -32,15 +32,15 @@
     }
 
     <!-- Tabla de Empresas -->
-    <div class="card border-0 shadow-sm" style="background-color: #4A372C; border-radius: 16px; color: #F5EBE1;">
+    <div class="card border-0 shadow-sm" style="background-color: #ffffff; border-radius: 16px; border: 1px solid #e5dec9; color: var(--text-main);">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover table-dark align-middle mb-0" style="background-color: transparent;">
+                <table class="table table-hover align-middle mb-0" style="background-color: transparent;">
                     <thead>
-                        <tr style="border-bottom: 2px solid #C2B3A5;">
-                            <th class="p-3">ID</th>
-                            <th class="p-3">Nombre de la Empresa</th>
-                            <th class="p-3 text-center">Acciones</th>
+                        <tr style="border-bottom: 2px solid #e5dec9;">
+                            <th class="p-3 text-muted">ID</th>
+                            <th class="p-3 text-muted">Nombre de la Empresa</th>
+                            <th class="p-3 text-center text-muted">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -54,12 +54,12 @@
                         {
                             foreach (var company in Model)
                             {
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td class="p-3 font-monospace">EMP-@company.Id</td>
-                                    <td class="p-3 fw-bold">@company.Name</td>
+                                <tr style="border-bottom: 1px solid #e5dec9;">
+                                    <td class="p-3 font-monospace text-muted">EMP-@company.Id</td>
+                                    <td class="p-3 fw-bold text-dark">@company.Name</td>
                                     <td class="p-3 text-center">
                                         <div class="d-flex justify-content-center gap-2">
-                                            <button type="button" class="btn btn-sm btn-outline-warning" onclick="openEditCompany(@company.Id, '@company.Name')" title="Editar">
+                                            <button type="button" class="btn btn-sm btn-outline-warning" style="color: var(--color-accent); border-color: var(--color-accent);" onclick="openEditCompany(@company.Id, '@company.Name')" title="Editar">
                                                 <i class="bi bi-pencil-square"></i>
                                             </button>
                                             <form asp-action="DeleteCompany" method="post" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta empresa? Todos los usuarios y documentos asociados perderán su tenant.');" style="display:inline;">

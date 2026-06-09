@@ -142,3 +142,9 @@ VALUES ('superadmin', 'Document2026!', 1, NULL, 'superadmin@qualitydoc.com');
 INSERT INTO [User] (Username, PasswordHash, RoleId, CompanyId, Email) 
 VALUES ('admin_empresa', 'Document2026!', 2, 1, 'admin_empresa@qualitydoc.com');
 GO
+
+-- 6. Índices de Rendimiento para Búsquedas Frecuentes (Rúbrica: Taller de Bases de Datos)
+CREATE NONCLUSTERED INDEX IX_Document_CompanyId ON Document(CompanyId);
+CREATE NONCLUSTERED INDEX IX_Document_IsoId ON Document(IsoId);
+CREATE NONCLUSTERED INDEX IX_User_Email ON [User](Email);
+GO

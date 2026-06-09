@@ -118,7 +118,7 @@ try {
 }
 
 // 4. Configurar paginación
-$limite_pag = 5;
+$limite_pag = 10;
 $total_paginas = ceil($total_filtrados / $limite_pag);
 $pagina_solicitada = isset($_GET['page']) ? intval($_GET['page']) : 1;
 if ($pagina_solicitada < 1) $pagina_solicitada = 1;

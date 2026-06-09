@@ -596,6 +596,9 @@
           <!-- Las tarjetas se cargarán aquí dinámicamente -->
         </div>
 
+        <!-- Paginación -->
+        <div id="pagination-container" class="mt-4 d-flex justify-content-center"></div>
+
         <!-- Footer -->
         <div class="footer-info">
           <hr>
@@ -657,6 +660,8 @@
     let currentFilterExtension = '';
     let searchQuery = '';
     let documentsList = [];
+    let currentPage = 1;
+    const itemsPerPage = 10;
 
     // Modales Bootstrap
     const viewerModal = new bootstrap.Modal(document.getElementById('viewerModal'));
@@ -828,6 +833,7 @@
             documentsList = documentsList.filter(doc => !standardExts.includes(doc.fileExtension.toLowerCase()));
           }
 
+          currentPage = 1;
           renderDocuments(documentsList);
         } else {
           showErrorMsg(resData.error || 'Ocurrió un error al buscar documentos.');
@@ -864,7 +870,7 @@
       resultsCount.textContent = '0 documentos';
     }
 
-    // Renderizar tarjetas de documentos
+    // Renderizar tarjetas de documentos (con paginación de 10 en 10)
     function renderDocuments(docs) {
       if (searchQuery) {
         resultsHeading.textContent = `Resultados para "${searchQuery}"`;
@@ -874,6 +880,9 @@
           : 'Documentos Recientes';
       }
       resultsCount.textContent = `${docs.length} ${docs.length === 1 ? 'documento' : 'documentos'}`;
+
+      const paginationContainer = document.getElementById('pagination-container');
+      resultsGrid.innerHTML = '';
 
       if (docs.length === 0) {
         resultsGrid.innerHTML = `
@@ -885,10 +894,22 @@
             </div>
           </div>
         `;
+        if (paginationContainer) paginationContainer.innerHTML = '';
         return;
       }
 
-      docs.forEach((doc, idx) => {
+      // Calcular paginación
+      const totalPages = Math.ceil(docs.length / itemsPerPage);
+      if (currentPage > totalPages) currentPage = totalPages;
+      if (currentPage < 1) currentPage = 1;
+
+      const start = (currentPage - 1) * itemsPerPage;
+      const end = start + itemsPerPage;
+      const paginatedDocs = docs.slice(start, end);
+
+      paginatedDocs.forEach((doc, localIdx) => {
+        // Calcular el índice real en documentsList
+        const idx = start + localIdx;
         const col = document.createElement('div');
         col.className = 'col-md-6 col-lg-4';
         
@@ -975,6 +996,75 @@
         `;
         resultsGrid.appendChild(col);
       });
+
+      renderPaginationControls(totalPages);
+    }
+
+    // Dibujar controles de paginación del buscador Node
+    function renderPaginationControls(totalPages) {
+      const container = document.getElementById('pagination-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (totalPages <= 1) return;
+
+      const nav = document.createElement('nav');
+      const ul = document.createElement('ul');
+      ul.className = 'pagination justify-content-center gap-1';
+
+      // Botón Anterior
+      const prevLi = document.createElement('li');
+      prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+      prevLi.innerHTML = `<button class="page-link rounded" style="color: var(--text-dark); border-color: var(--light-border); background-color: #fff;"><i class="bi bi-chevron-left"></i></button>`;
+      prevLi.onclick = () => {
+        if (currentPage > 1) {
+          currentPage--;
+          renderDocuments(documentsList);
+        }
+      };
+      ul.appendChild(prevLi);
+
+      // Números de Página
+      for (let i = 1; i <= totalPages; i++) {
+        const li = document.createElement('li');
+        li.className = `page-item ${currentPage === i ? 'active' : ''}`;
+        
+        const btn = document.createElement('button');
+        btn.className = 'page-link rounded fw-bold';
+        btn.textContent = i;
+        
+        if (currentPage === i) {
+          btn.style.backgroundColor = 'var(--mocha-brown)';
+          btn.style.borderColor = 'var(--mocha-brown)';
+          btn.style.color = 'white';
+        } else {
+          btn.style.color = 'var(--text-dark)';
+          btn.style.borderColor = 'var(--light-border)';
+          btn.style.backgroundColor = '#fff';
+        }
+        
+        li.appendChild(btn);
+        li.onclick = () => {
+          currentPage = i;
+          renderDocuments(documentsList);
+        };
+        ul.appendChild(li);
+      }
+
+      // Botón Siguiente
+      const nextLi = document.createElement('li');
+      nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+      nextLi.innerHTML = `<button class="page-link rounded" style="color: var(--text-dark); border-color: var(--light-border); background-color: #fff;"><i class="bi bi-chevron-right"></i></button>`;
+      nextLi.onclick = () => {
+        if (currentPage < totalPages) {
+          currentPage++;
+          renderDocuments(documentsList);
+        }
+      };
+      ul.appendChild(nextLi);
+
+      nav.appendChild(ul);
+      container.appendChild(nav);
     }
 
     // Abrir visor de documento

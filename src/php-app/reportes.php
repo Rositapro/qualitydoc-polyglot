@@ -214,7 +214,7 @@ try {
     $stmt_top->execute($params_top);
     $top_documentos = $stmt_top->fetchAll();
 
-    // D. Tabla Detallada del Reporte actual
+    // D. Tabla Detallada del Reporte actual (Paginada)
     $join_user_details = "l.idusuario = u.idusuario";
     $join_doc_details = "l.iddocumento = d.iddocumento";
     $where_details = ["l.fecha BETWEEN :inicio AND :fin"];
@@ -234,6 +234,32 @@ try {
         }
     }
 
+    // 1. Contar total de registros para paginación
+    $sql_count_logs = "
+        SELECT COUNT(*) as total
+        FROM logsconsultas l
+        INNER JOIN usuarios u ON {$join_user_details}
+        INNER JOIN documento d ON {$join_doc_details}
+        WHERE " . implode(" AND ", $where_details) . "
+    ";
+    
+    if (!empty($filtro_accion)) {
+        $sql_count_logs .= " AND l.accion = :accion";
+    }
+
+    $stmt_count_logs = $pdo->prepare($sql_count_logs);
+    $stmt_count_logs->execute($params_details);
+    $total_logs = $stmt_count_logs->fetch()['total'];
+
+    // 2. Variables de paginación
+    $limite_pag_logs = 10;
+    $total_paginas_logs = ceil($total_logs / $limite_pag_logs);
+    $pagina_solicitada_logs = isset($_GET['page_logs']) ? intval($_GET['page_logs']) : 1;
+    if ($pagina_solicitada_logs < 1) $pagina_solicitada_logs = 1;
+    if ($total_paginas_logs > 0 && $pagina_solicitada_logs > $total_paginas_logs) $pagina_solicitada_logs = $total_paginas_logs;
+    $offset_logs = ($pagina_solicitada_logs - 1) * $limite_pag_logs;
+
+    // 3. Consulta detallada paginada
     $sql_details = "
         SELECT 
             l.idlog, 
@@ -253,10 +279,11 @@ try {
     
     if (!empty($filtro_accion)) {
         $sql_details .= " AND l.accion = :accion";
-        $params_details['accion'] = $filtro_accion;
     }
 
-    $sql_details .= " ORDER BY l.fecha DESC";
+    $sql_details .= " ORDER BY l.fecha DESC LIMIT :limit OFFSET :offset";
+    $sql_details = str_replace(':limit', (int)$limite_pag_logs, $sql_details);
+    $sql_details = str_replace(':offset', (int)$offset_logs, $sql_details);
     
     $stmt_details = $pdo->prepare($sql_details);
     $stmt_details->execute($params_details);
@@ -556,7 +583,7 @@ try {
         <div class="card-elegant h-100">
             <div class="card-elegant-header d-flex justify-content-between align-items-center">
                 <h5 class="m-0 font-title"><i class="bi bi-list-check me-2 text-primary"></i>Historial Detallado de Operaciones</h5>
-                <span class="badge bg-dark font-sans">Total en Rango: <?php echo count($report_logs); ?></span>
+                <span class="badge bg-dark font-sans">Total en Rango: <?php echo $total_logs; ?></span>
             </div>
             
             <div class="table-responsive">
@@ -632,6 +659,39 @@ try {
                     </tbody>
                 </table>
             </div>
+
+            <!-- Paginación de Logs -->
+            <?php if ($total_paginas_logs > 1): ?>
+                <div class="card-footer bg-transparent border-0 font-sans">
+                    <nav aria-label="Navegación de páginas de logs">
+                        <ul class="pagination justify-content-center gap-1 my-2">
+                            <!-- Anterior -->
+                            <li class="page-item <?php echo ($pagina_solicitada_logs <= 1) ? 'disabled' : ''; ?>">
+                                <a class="page-link rounded" href="reportes.php?page_logs=<?php echo $pagina_solicitada_logs - 1; ?>&fecha_inicio=<?php echo urlencode($fecha_inicio); ?>&fecha_fin=<?php echo urlencode($fecha_fin); ?>&filtro_accion=<?php echo urlencode($filtro_accion); ?>" style="color: var(--color-primary); border-color: var(--border-color); background-color: #fff;">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                            
+                            <!-- Páginas -->
+                            <?php for ($i = 1; $i <= $total_paginas_logs; $i++): ?>
+                                <li class="page-item <?php echo ($pagina_solicitada_logs == $i) ? 'active' : ''; ?>">
+                                    <a class="page-link rounded fw-bold" href="reportes.php?page_logs=<?php echo $i; ?>&fecha_inicio=<?php echo urlencode($fecha_inicio); ?>&fecha_fin=<?php echo urlencode($fecha_fin); ?>&filtro_accion=<?php echo urlencode($filtro_accion); ?>" 
+                                       style="<?php echo ($pagina_solicitada_logs == $i) ? 'background-color: var(--color-primary) !important; border-color: var(--color-primary) !important; color: white !important;' : 'color: var(--color-primary); border-color: var(--border-color); background-color: #fff;'; ?>">
+                                        <?php echo $i; ?>
+                                    </a>
+                                </li>
+                            <?php endfor; ?>
+                            
+                            <!-- Siguiente -->
+                            <li class="page-item <?php echo ($pagina_solicitada_logs >= $total_paginas_logs) ? 'disabled' : ''; ?>">
+                                <a class="page-link rounded" href="reportes.php?page_logs=<?php echo $pagina_solicitada_logs + 1; ?>&fecha_inicio=<?php echo urlencode($fecha_inicio); ?>&fecha_fin=<?php echo urlencode($fecha_fin); ?>&filtro_accion=<?php echo urlencode($filtro_accion); ?>" style="color: var(--color-primary); border-color: var(--border-color); background-color: #fff;">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 

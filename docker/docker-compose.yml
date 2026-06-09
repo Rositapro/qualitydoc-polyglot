@@ -38,6 +38,7 @@ services:
       - AUTH_API_URL=http://admin-dotnet:8080/api/login
     volumes:
       - ../src/php-app:/var/www/html
+      - ../src/dotnet-core/src/modulo-central/QualityDocc.MVC/wwwroot/uploads:/var/www/html/uploads
     depends_on:
       - db-postgres
     networks:
