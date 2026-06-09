@@ -6,6 +6,11 @@ require_once __DIR__ . '/includes/db.php';
 
 $empresa_id = $_SESSION['empresaid'] ?? 0;
 
+$rol_usuario = $_SESSION['rol'] ?? 'Colaborador';
+$usuario_id = $_SESSION['idusuario'] ?? '';
+$is_superadmin = (strcasecmp($rol_usuario, 'superadmin') === 0);
+$is_admin = (strcasecmp($rol_usuario, 'admin') === 0 || strcasecmp($rol_usuario, 'administrator') === 0);
+
 // 1. Procesar rango de fechas por defecto (últimos 30 días) y filtros de acción
 $fecha_inicio = isset($_GET['fecha_inicio']) ? trim($_GET['fecha_inicio']) : date('Y-m-d', strtotime('-30 days'));
 $fecha_fin = isset($_GET['fecha_fin']) ? trim($_GET['fecha_fin']) : date('Y-m-d');
@@ -18,6 +23,26 @@ $query_fin = $fecha_fin . " 23:59:59";
 // 2. LÓGICA DE EXPORTACIÓN A EXCEL/CSV (Antes de pintar cualquier HTML)
 if (isset($_GET['export_csv']) && $_GET['export_csv'] == 1) {
     try {
+        $join_user_csv = "l.idusuario = u.idusuario";
+        $join_doc_csv = "l.iddocumento = d.iddocumento";
+        $where_csv = ["l.fecha BETWEEN :inicio AND :fin"];
+        $params_csv = [
+            'inicio' => $query_inicio,
+            'fin' => $query_fin
+        ];
+
+        if (!$is_superadmin) {
+            $join_user_csv .= " AND u.empresaid = :empresa";
+            $join_doc_csv .= " AND d.empresaid = :empresa";
+            $where_csv[] = "l.empresaid = :empresa";
+            $params_csv['empresa'] = $empresa_id;
+            
+            if (!$is_admin) {
+                $where_csv[] = "l.idusuario = :idusuario";
+                $params_csv['idusuario'] = $usuario_id;
+            }
+        }
+
         $sql_csv = "
             SELECT 
                 l.idlog, 
@@ -27,18 +52,13 @@ if (isset($_GET['export_csv']) && $_GET['export_csv'] == 1) {
                 d.codigo, 
                 d.titulodocumento, 
                 d.idiso, 
-                l.fecha
+                l.fecha,
+                l.empresaid
             FROM logsconsultas l
-            INNER JOIN usuarios u ON l.idusuario = u.idusuario AND u.empresaid = :empresa
-            INNER JOIN documento d ON l.iddocumento = d.iddocumento AND d.empresaid = :empresa
-            WHERE l.empresaid = :empresa AND l.fecha BETWEEN :inicio AND :fin
+            INNER JOIN usuarios u ON {$join_user_csv}
+            INNER JOIN documento d ON {$join_doc_csv}
+            WHERE " . implode(" AND ", $where_csv) . "
         ";
-        
-        $params_csv = [
-            'empresa' => $empresa_id,
-            'inicio' => $query_inicio,
-            'fin' => $query_fin
-        ];
         
         if (!empty($filtro_accion)) {
             $sql_csv .= " AND l.accion = :accion";
@@ -53,7 +73,7 @@ if (isset($_GET['export_csv']) && $_GET['export_csv'] == 1) {
 
         // Configurar cabeceras de descarga de CSV
         header('Content-Type: text/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename="reporte_operativo_empresa_' . $empresa_id . '_' . date('Ymd') . '.csv"');
+        header('Content-Disposition: attachment; filename="reporte_operativo_empresa_' . ($is_superadmin ? 'todos' : $empresa_id) . '_' . date('Ymd') . '.csv"');
         
         $output = fopen('php://output', 'w');
         
@@ -61,11 +81,21 @@ if (isset($_GET['export_csv']) && $_GET['export_csv'] == 1) {
         fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
         
         // Cabeceras de columnas
-        fputcsv($output, ['Ref Log', 'Usuario', 'Rol', 'Acción', 'Código Documento', 'Título Documento', 'Norma ISO', 'Fecha y Hora']);
+        $headers = ['Ref Log'];
+        if ($is_superadmin) {
+            $headers[] = 'ID Empresa';
+            $headers[] = 'Empresa';
+        }
+        $headers = array_merge($headers, ['Usuario', 'Rol', 'Acción', 'Código Documento', 'Título Documento', 'Norma ISO', 'Fecha y Hora']);
+        fputcsv($output, $headers);
         
         foreach ($csv_logs as $log) {
-            fputcsv($output, [
-                '#' . $log['idlog'],
+            $row = ['#' . $log['idlog']];
+            if ($is_superadmin) {
+                $row[] = $log['empresaid'];
+                $row[] = $log['empresaid'] == 2 ? 'KittyBeauty' : ($log['empresaid'] == 1 ? 'Empresa Maestra' : 'Tenant Corporativo');
+            }
+            $row = array_merge($row, [
                 $log['nombreusuario'],
                 ucfirst($log['rol']),
                 strtoupper($log['accion']),
@@ -74,6 +104,7 @@ if (isset($_GET['export_csv']) && $_GET['export_csv'] == 1) {
                 $log['idiso'],
                 $log['fecha']
             ]);
+            fputcsv($output, $row);
         }
         fclose($output);
         exit();
@@ -89,17 +120,30 @@ require_once __DIR__ . '/includes/header.php';
 // 3. Consultas de base de datos para las métricas del Reporte
 try {
     // A. Conteo por Tipo de Acción
-    $stmt_actions = $pdo->prepare("
-        SELECT accion, COUNT(*) as total 
-        FROM logsconsultas 
-        WHERE empresaid = :empresa AND fecha BETWEEN :inicio AND :fin 
-        GROUP BY accion
-    ");
-    $stmt_actions->execute([
-        'empresa' => $empresa_id,
+    $where_actions = ["fecha BETWEEN :inicio AND :fin"];
+    $params_actions = [
         'inicio' => $query_inicio,
         'fin' => $query_fin
-    ]);
+    ];
+    if (!$is_superadmin) {
+        $where_actions[] = "empresaid = :empresa";
+        $params_actions['empresa'] = $empresa_id;
+        
+        if (!$is_admin) {
+            $where_actions[] = "idusuario = :idusuario";
+            $params_actions['idusuario'] = $usuario_id;
+        }
+    }
+    
+    $sql_actions = "
+        SELECT accion, COUNT(*) as total 
+        FROM logsconsultas 
+        WHERE " . implode(" AND ", $where_actions) . "
+        GROUP BY accion
+    ";
+    
+    $stmt_actions = $pdo->prepare($sql_actions);
+    $stmt_actions->execute($params_actions);
     $action_counts = $stmt_actions->fetchAll(PDO::FETCH_KEY_PAIR);
     
     $total_operaciones = array_sum($action_counts);
@@ -108,39 +152,88 @@ try {
     $total_sugerencias = $action_counts['sugerencia'] ?? 0;
 
     // B. Actividad por Norma ISO (para gráfica de barras)
-    $stmt_iso = $pdo->prepare("
-        SELECT d.idiso, COUNT(l.idlog) as total 
-        FROM logsconsultas l
-        INNER JOIN documento d ON l.iddocumento = d.iddocumento AND d.empresaid = :empresa
-        WHERE l.empresaid = :empresa AND l.fecha BETWEEN :inicio AND :fin
-        GROUP BY d.idiso
-        ORDER BY total DESC
-    ");
-    $stmt_iso->execute([
-        'empresa' => $empresa_id,
+    $join_doc_iso = "l.iddocumento = d.iddocumento";
+    $where_iso = ["l.fecha BETWEEN :inicio AND :fin"];
+    $params_iso = [
         'inicio' => $query_inicio,
         'fin' => $query_fin
-    ]);
+    ];
+    if (!$is_superadmin) {
+        $join_doc_iso .= " AND d.empresaid = :empresa";
+        $where_iso[] = "l.empresaid = :empresa";
+        $params_iso['empresa'] = $empresa_id;
+        
+        if (!$is_admin) {
+            $where_iso[] = "l.idusuario = :idusuario";
+            $params_iso['idusuario'] = $usuario_id;
+        }
+    }
+
+    $sql_iso = "
+        SELECT d.idiso, COUNT(l.idlog) as total 
+        FROM logsconsultas l
+        INNER JOIN documento d ON {$join_doc_iso}
+        WHERE " . implode(" AND ", $where_iso) . "
+        GROUP BY d.idiso
+        ORDER BY total DESC
+    ";
+
+    $stmt_iso = $pdo->prepare($sql_iso);
+    $stmt_iso->execute($params_iso);
     $iso_activity = $stmt_iso->fetchAll();
 
     // C. Top 5 Documentos Más Activos (Ficha Operativa)
-    $stmt_top = $pdo->prepare("
+    $join_doc_top = "l.iddocumento = d.iddocumento";
+    $where_top = ["l.fecha BETWEEN :inicio AND :fin"];
+    $params_top = [
+        'inicio' => $query_inicio,
+        'fin' => $query_fin
+    ];
+    if (!$is_superadmin) {
+        $join_doc_top .= " AND d.empresaid = :empresa";
+        $where_top[] = "l.empresaid = :empresa";
+        $params_top['empresa'] = $empresa_id;
+        
+        if (!$is_admin) {
+            $where_top[] = "l.idusuario = :idusuario";
+            $params_top['idusuario'] = $usuario_id;
+        }
+    }
+
+    $sql_top = "
         SELECT d.iddocumento, d.titulodocumento, d.codigo, d.idiso, COUNT(l.idlog) as total_operaciones 
         FROM logsconsultas l
-        INNER JOIN documento d ON l.iddocumento = d.iddocumento AND d.empresaid = :empresa
-        WHERE l.empresaid = :empresa AND l.fecha BETWEEN :inicio AND :fin
+        INNER JOIN documento d ON {$join_doc_top}
+        WHERE " . implode(" AND ", $where_top) . "
         GROUP BY d.iddocumento, d.titulodocumento, d.codigo, d.idiso
         ORDER BY total_operaciones DESC
         LIMIT 5
-    ");
-    $stmt_top->execute([
-        'empresa' => $empresa_id,
-        'inicio' => $query_inicio,
-        'fin' => $query_fin
-    ]);
+    ";
+
+    $stmt_top = $pdo->prepare($sql_top);
+    $stmt_top->execute($params_top);
     $top_documentos = $stmt_top->fetchAll();
 
     // D. Tabla Detallada del Reporte actual
+    $join_user_details = "l.idusuario = u.idusuario";
+    $join_doc_details = "l.iddocumento = d.iddocumento";
+    $where_details = ["l.fecha BETWEEN :inicio AND :fin"];
+    $params_details = [
+        'inicio' => $query_inicio,
+        'fin' => $query_fin
+    ];
+    if (!$is_superadmin) {
+        $join_user_details .= " AND u.empresaid = :empresa";
+        $join_doc_details .= " AND d.empresaid = :empresa";
+        $where_details[] = "l.empresaid = :empresa";
+        $params_details['empresa'] = $empresa_id;
+        
+        if (!$is_admin) {
+            $where_details[] = "l.idusuario = :idusuario";
+            $params_details['idusuario'] = $usuario_id;
+        }
+    }
+
     $sql_details = "
         SELECT 
             l.idlog, 
@@ -150,19 +243,14 @@ try {
             d.codigo, 
             d.titulodocumento, 
             d.idiso, 
-            l.fecha
+            l.fecha,
+            l.empresaid
         FROM logsconsultas l
-        INNER JOIN usuarios u ON l.idusuario = u.idusuario AND u.empresaid = :empresa
-        INNER JOIN documento d ON l.iddocumento = d.iddocumento AND d.empresaid = :empresa
-        WHERE l.empresaid = :empresa AND l.fecha BETWEEN :inicio AND :fin
+        INNER JOIN usuarios u ON {$join_user_details}
+        INNER JOIN documento d ON {$join_doc_details}
+        WHERE " . implode(" AND ", $where_details) . "
     ";
     
-    $params_details = [
-        'empresa' => $empresa_id,
-        'inicio' => $query_inicio,
-        'fin' => $query_fin
-    ];
-
     if (!empty($filtro_accion)) {
         $sql_details .= " AND l.accion = :accion";
         $params_details['accion'] = $filtro_accion;
@@ -278,7 +366,7 @@ try {
     <div class="print-title">QualityDoc - Reporte Operativo</div>
     <div class="text-center text-muted mb-3" style="font-size: 11pt;">Control de Gestión Documental y Calidad</div>
     <div class="print-meta">
-        <div><strong>Tenant / Empresa Activa:</strong> ID #<?php echo htmlspecialchars($empresa_id); ?> (<?php echo htmlspecialchars($_SESSION['empresanombre'] ?? ($empresa_id == 2 ? 'KittyBeauty' : ($empresa_id == 1 ? 'Empresa Maestra' : 'Tenant Corporativo'))); ?>)</div>
+        <div><strong>Tenant / Empresa Activa:</strong> <?php echo $is_superadmin ? 'Todas (Consolidado SuperAdmin)' : 'ID #' . htmlspecialchars($empresa_id) . ' (' . htmlspecialchars($_SESSION['empresanombre'] ?? ($empresa_id == 2 ? 'KittyBeauty' : ($empresa_id == 1 ? 'Empresa Maestra' : 'Tenant Corporativo'))) . ')'; ?></div>
         <div><strong>Rango Reportado:</strong> <?php echo date('d/m/Y', strtotime($fecha_inicio)); ?> - <?php echo date('d/m/Y', strtotime($fecha_fin)); ?></div>
         <div><strong>Fecha Emisión:</strong> <?php echo date('d/m/Y H:i'); ?></div>
     </div>
@@ -476,6 +564,9 @@ try {
                     <thead>
                         <tr>
                             <th style="width: 80px;">Ref</th>
+                            <?php if ($is_superadmin): ?>
+                                <th>Empresa</th>
+                            <?php endif; ?>
                             <th>Usuario</th>
                             <th>Acción</th>
                             <th>Documento / Código</th>
@@ -487,6 +578,17 @@ try {
                             <?php foreach ($report_logs as $log): ?>
                                 <tr>
                                     <td class="text-muted">#<?php echo $log['idlog']; ?></td>
+                                    <?php if ($is_superadmin): ?>
+                                        <td>
+                                            <span class="badge bg-secondary font-sans" style="font-size: 0.75rem;">
+                                                ID: <?php echo $log['empresaid']; ?>
+                                            </span>
+                                            <br>
+                                            <small class="text-muted" style="font-size: 0.75rem;">
+                                                <?php echo $log['empresaid'] == 2 ? 'KittyBeauty' : ($log['empresaid'] == 1 ? 'Empresa Maestra' : 'Tenant Corporativo'); ?>
+                                            </small>
+                                        </td>
+                                    <?php endif; ?>
                                     <td>
                                         <strong><?php echo htmlspecialchars($log['nombreusuario']); ?></strong><br>
                                         <small class="text-muted" style="font-size: 0.75rem;"><?php echo htmlspecialchars(ucfirst($log['rol'])); ?></small>
@@ -554,6 +656,11 @@ try {
                                 </div>
                                 <div class="timeline-text mt-1">
                                     <strong><?php echo htmlspecialchars($log['nombreusuario']); ?></strong>
+                                    <?php if ($is_superadmin): ?>
+                                        <span class="badge bg-secondary font-sans" style="font-size: 0.7rem; padding: 0.2em 0.5em; vertical-align: middle;">
+                                            ID: <?php echo $log['empresaid']; ?>
+                                        </span>
+                                    <?php endif; ?>
                                     <?php if ($log['accion'] === 'visualizacion'): ?>
                                         visualizó el documento
                                     <?php elseif ($log['accion'] === 'descarga'): ?>

@@ -25,6 +25,13 @@ if (empty($email) || empty($password)) {
 
 // Cuentas de usuario registradas con sus respectivas empresas y roles (Contraseña de prueba general: 12345)
 $usuarios_permitidos = [
+    'superadmin@qualitydoc.com' => [
+        'password' => 'Document2026!',
+        'idusuario' => 'superadmin',
+        'nombreusuario' => 'Super Administrador',
+        'rol' => 'superadmin',
+        'empresaid' => 0
+    ],
     'juan@empresa1.com' => [
         'password' => '12345',
         'idusuario' => 'juan',
