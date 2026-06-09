@@ -13,15 +13,15 @@
   
   <style>
     :root {
-      --dark-espresso: #1A120B;
-      --mocha-brown: #3C2A21;
-      --warm-taupe: #D5CEB8;
-      --champagne-ivory: #F4F0E6;
-      --gold-accent: #C4A45C;
-      --text-dark: #2C241B;
-      --error-red: #8B2E2E;
-      --light-border: #E8E5DF;
-      --success-green: #2E7D32;
+      --dark-espresso: #23170f;
+      --mocha-brown: #5c3a21;
+      --warm-taupe: #e5dec9;
+      --champagne-ivory: #f7f4ed;
+      --gold-accent: #c5a059;
+      --text-dark: #332720;
+      --error-red: #8b3c0c;
+      --light-border: #e5dec9;
+      --success-green: #2e5618;
       --blue-accent: #1976D2;
     }
 
@@ -50,12 +50,13 @@
 
     .login-card {
       background-color: white;
-      border-radius: 15px;
-      box-shadow: 0 15px 35px rgba(26, 18, 11, 0.08);
-      border-top: 5px solid var(--gold-accent);
+      border-radius: 16px;
+      box-shadow: 0 15px 35px rgba(92, 58, 33, 0.08);
+      border-top: 5px solid var(--mocha-brown);
+      border: 1px solid var(--light-border);
       width: 100%;
-      max-width: 400px;
-      padding: 40px 30px;
+      max-width: 450px;
+      padding: 2.5rem;
     }
 
     .login-logo {
@@ -92,6 +93,23 @@
     .input-custom:focus {
       border-color: var(--gold-accent) !important;
       box-shadow: 0 0 0 3px rgba(196, 164, 92, 0.2) !important;
+    }
+
+    #login-wrapper .input-group-text {
+      background-color: #fcfbfa;
+      border: 1px solid var(--warm-taupe);
+      border-right: none;
+      color: var(--text-dark);
+      border-radius: 8px 0 0 8px;
+    }
+
+    #login-wrapper .input-custom {
+      border-radius: 0 8px 8px 0 !important;
+    }
+
+    #login-wrapper .input-group:focus-within .input-group-text {
+      border-color: var(--gold-accent);
+      color: var(--mocha-brown);
     }
 
     .btn-login-submit {
@@ -462,8 +480,11 @@
   <!-- ========================================== -->
   <div id="login-wrapper">
     <div class="login-card">
-      <h3 class="login-logo">QualityDoc</h3>
-      <p class="login-subtitle">Microservicio de indexación masiva y manejo de metadatos NoSQL</p>
+      <div class="text-center mb-4">
+        <i class="bi bi-journal-bookmark-fill" style="font-size: 3rem; color: var(--gold-accent);"></i>
+        <h3 class="login-logo mt-2">QualityDoc</h3>
+        <p class="login-subtitle mb-0">Microservicio de indexación masiva y manejo de metadatos NoSQL</p>
+      </div>
       
       <!-- Mensaje de Error -->
       <div id="login-error" class="alert alert-danger d-none shadow-sm" role="alert"></div>
@@ -471,13 +492,20 @@
       <form id="login-form">
         <div class="mb-3">
           <label for="login-username" class="form-label-custom">Usuario / Correo</label>
-          <input type="text" id="login-username" class="form-control input-custom" placeholder="ejemplo@correo.com" required>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-envelope-fill"></i></span>
+            <input type="text" id="login-username" class="form-control input-custom shadow-none" placeholder="ejemplo@correo.com" required>
+          </div>
         </div>
         <div class="mb-4">
           <label for="login-password" class="form-label-custom">Contraseña</label>
-          <input type="password" id="login-password" class="form-control input-custom" placeholder="••••••••" required>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+            <input type="password" id="login-password" class="form-control input-custom shadow-none" placeholder="••••••••" required>
+          </div>
         </div>
-        <button type="submit" class="btn btn-login-submit w-100" id="login-btn">
+        <button type="submit" class="btn btn-login-submit w-100 py-2.5 d-flex align-items-center justify-content-center gap-2" id="login-btn">
+          <i class="bi bi-shield-lock-fill"></i>
           <span id="login-btn-text">Entrar</span>
           <span id="login-btn-spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
         </button>

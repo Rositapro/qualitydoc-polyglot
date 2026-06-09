@@ -166,15 +166,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <form method="POST" action="login.php" class="font-sans">
         <div class="mb-3">
             <label for="email" class="form-label form-label-elegant">Correo Electrónico</label>
-            <input type="email" class="form-control form-control-elegant" id="email" name="email" placeholder="ejemplo@correo.com" required autocomplete="email">
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-envelope-fill"></i></span>
+                <input type="email" class="form-control form-control-elegant" id="email" name="email" placeholder="ejemplo@correo.com" required autocomplete="email">
+            </div>
         </div>
         
         <div class="mb-4">
             <label for="password" class="form-label form-label-elegant">Contraseña (Módulo Externo)</label>
-            <input type="password" class="form-control form-control-elegant" id="password" name="password" placeholder="Contraseña universitaria" required autocomplete="current-password">
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                <input type="password" class="form-control form-control-elegant" id="password" name="password" placeholder="Contraseña universitaria" required autocomplete="current-password">
+            </div>
         </div>
 
-        <button type="submit" class="btn btn-elegant-primary w-100 py-2 d-flex align-items-center justify-content-center gap-2">
+        <button type="submit" class="btn btn-elegant-primary w-100 py-2.5 d-flex align-items-center justify-content-center gap-2">
             <i class="bi bi-shield-lock-fill"></i>
             Ingresar al Sistema
         </button>

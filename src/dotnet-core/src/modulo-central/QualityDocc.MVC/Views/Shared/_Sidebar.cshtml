@@ -1,48 +1,134 @@
 @if (User.Identity != null && User.Identity.IsAuthenticated)
 {
-    <a href="/Home/Index" class="nav-link"><i class="bi bi-house-door-fill"></i> Inicio</a>
+    <li>
+        <a href="/Home/Index" class="nav-item-link">
+            <i class="bi bi-house-door"></i>
+            <span>Inicio</span>
+        </a>
+    </li>
 }
 
 @if (User.IsInRole("Author"))
 {
-    <a href="/Author/Index" class="nav-link"><i class="bi bi-speedometer2"></i> Dashboard Autor</a>
-    <a href="/Author/Upload" class="nav-link"><i class="bi bi-upload"></i> Subir Documento</a>
-    <a href="/Author/Search" class="nav-link"><i class="bi bi-search"></i> Buscar Documentos</a>
-    <a href="/Author/Returned" class="nav-link"><i class="bi bi-arrow-return-left"></i> Devueltos</a>
-    <a href="/Author/Suggestions" class="nav-link"><i class="bi bi-chat-right-quote"></i> Sugerencias</a>
-    <a href="/SmartSearch/Index" class="nav-link"><i class="bi bi-search-heart"></i> Búsqueda Inteligente</a>
+    <li>
+        <a href="/Author/Index" class="nav-item-link">
+            <i class="bi bi-speedometer2"></i>
+            <span>Dashboard Autor</span>
+        </a>
+    </li>
+    <li>
+        <a href="/Author/Upload" class="nav-item-link">
+            <i class="bi bi-cloud-arrow-up"></i>
+            <span>Subir Documento</span>
+        </a>
+    </li>
+    <li>
+        <a href="/Author/Search" class="nav-item-link">
+            <i class="bi bi-search"></i>
+            <span>Buscar Documentos</span>
+        </a>
+    </li>
+    <li>
+        <a href="/Author/Returned" class="nav-item-link">
+            <i class="bi bi-arrow-return-left"></i>
+            <span>Devueltos</span>
+        </a>
+    </li>
+    <li>
+        <a href="/Author/Suggestions" class="nav-item-link">
+            <i class="bi bi-chat-right-quote"></i>
+            <span>Sugerencias</span>
+        </a>
+    </li>
+    <li>
+        <a href="/SmartSearch/Index" class="nav-item-link">
+            <i class="bi bi-search-heart"></i>
+            <span>Búsqueda Inteligente</span>
+        </a>
+    </li>
 }
 
 @if (User.IsInRole("Reviewer"))
 {
-    <a href="/Reviewer/Index" class="nav-link"><i class="bi bi-speedometer2"></i> Dashboard Revisor</a>
-    <a href="/Reviewer/Pending" class="nav-link"><i class="bi bi-clipboard-check"></i> Pendientes de Revisión</a>
-    <a href="/SmartSearch/Index" class="nav-link"><i class="bi bi-search-heart"></i> Búsqueda Inteligente</a>
+    <li>
+        <a href="/Reviewer/Index" class="nav-item-link">
+            <i class="bi bi-speedometer2"></i>
+            <span>Dashboard Revisor</span>
+        </a>
+    </li>
+    <li>
+        <a href="/Reviewer/Pending" class="nav-item-link">
+            <i class="bi bi-clipboard-check"></i>
+            <span>Pendientes de Revisión</span>
+        </a>
+    </li>
+    <li>
+        <a href="/SmartSearch/Index" class="nav-item-link">
+            <i class="bi bi-search-heart"></i>
+            <span>Búsqueda Inteligente</span>
+        </a>
+    </li>
 }
 
 @if (User.IsInRole("Approver"))
 {
-    <a href="/Approver/Index" class="nav-link"><i class="bi bi-speedometer2"></i> Dashboard Aprobador</a>
-    <a href="/Approver/Pending" class="nav-link"><i class="bi bi-clipboard-check"></i> Pendientes de Autorizar</a>
-    <a href="/SmartSearch/Index" class="nav-link"><i class="bi bi-search-heart"></i> Búsqueda Inteligente</a>
+    <li>
+        <a href="/Approver/Index" class="nav-item-link">
+            <i class="bi bi-speedometer2"></i>
+            <span>Dashboard Aprobador</span>
+        </a>
+    </li>
+    <li>
+        <a href="/Approver/Pending" class="nav-item-link">
+            <i class="bi bi-clipboard-check"></i>
+            <span>Pendientes de Autorizar</span>
+        </a>
+    </li>
+    <li>
+        <a href="/SmartSearch/Index" class="nav-item-link">
+            <i class="bi bi-search-heart"></i>
+            <span>Búsqueda Inteligente</span>
+        </a>
+    </li>
 }
 
 @if (User.IsInRole("SuperAdmin") || User.IsInRole("Administrator"))
 {
-    <a href="/Admin/Dashboard" class="nav-link"><i class="bi bi-speedometer2"></i> Dashboard Admin</a>
-    <a href="/Admin/Users" class="nav-link"><i class="bi bi-people"></i> Gestionar Usuarios</a>
+    <li>
+        <a href="/Admin/Dashboard" class="nav-item-link">
+            <i class="bi bi-speedometer2"></i>
+            <span>Dashboard Admin</span>
+        </a>
+    </li>
+    <li>
+        <a href="/Admin/Users" class="nav-item-link">
+            <i class="bi bi-people"></i>
+            <span>Gestionar Usuarios</span>
+        </a>
+    </li>
     @if (User.IsInRole("SuperAdmin"))
     {
-        <a href="/Admin/Companies" class="nav-link"><i class="bi bi-building"></i> Gestionar Empresas</a>
+        <li>
+            <a href="/Admin/Companies" class="nav-item-link">
+                <i class="bi bi-building"></i>
+                <span>Gestionar Empresas</span>
+            </a>
+        </li>
     }
-    <a href="/Admin/Isos" class="nav-link"><i class="bi bi-shield-check"></i> Gestión de ISO</a>
+    <li>
+        <a href="/Admin/Isos" class="nav-item-link">
+            <i class="bi bi-shield-check"></i>
+            <span>Gestión de ISO</span>
+        </a>
+    </li>
 }
 
 @if (User.Identity != null && User.Identity.IsAuthenticated)
 {
-    <hr class="text-white opacity-50 my-4" style="border-width: 1px;" />
-
-    <a href="/Auth/Logout" class="nav-link text-danger" style="transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
-        <i class="bi bi-box-arrow-left"></i> Cerrar Sesión
-    </a>
+    <div class="border-top border-secondary pt-3 mt-4">
+        <a href="/Auth/Logout" class="btn btn-sm btn-outline-danger w-100 d-flex align-items-center justify-content-center gap-2" style="font-family: 'Plus Jakarta Sans', sans-serif;">
+            <i class="bi bi-box-arrow-left"></i>
+            <span>Cerrar Sesión</span>
+        </a>
+    </div>
 }

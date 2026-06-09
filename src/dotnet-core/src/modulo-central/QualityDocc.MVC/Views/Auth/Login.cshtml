@@ -150,46 +150,27 @@
 
             /* Cuadro de Login */
             .card-login {
-                background-color: var(--card-brown-light);
+                background-color: #ffffff;
                 max-width: 450px;
                 width: 100%;
                 position: relative;
                 border-radius: 16px !important;
                 overflow: hidden;
-                border: 1px solid var(--border-luxe);
-                outline: 1px solid rgba(245, 235, 225, 0.15);
-                outline-offset: -8px;
-                box-shadow: 0 30px 60px rgba(0,0,0,0.7);
+                border: 1px solid #e5dec9;
+                border-top: 5px solid #5c3a21;
+                box-shadow: 0 30px 60px rgba(92, 58, 33, 0.15);
                 transform: scale(0.92);
                 transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-                padding: 3rem 2.5rem 12rem 2.5rem; /* Espacio inferior protegido para la pluma */
+                padding: 2.5rem;
             }
-
-                /* Imagen de la pluma fuente colocada desde internet */
-                .card-login::after {
-                    content: '';
-                    position: absolute;
-                    bottom: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 180px;
-                    background-image: url('https://images.unsplash.com/photo-1455390582262-044cdead277a?q=80&w=600&auto=format&fit=crop');
-                    background-size: cover;
-                    background-position: center bottom;
-                    z-index: 1;
-                    opacity: 0.35;
-                    pointer-events: none;
-                    -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%);
-                    mask-image: linear-gradient(to top, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%);
-                }
 
             .login-overlay.show .card-login {
                 transform: scale(1);
-                backdrop-filter: blur(12px);
-                background-color: rgba(74, 55, 44, 0.92);
+                backdrop-filter: none;
+                background-color: #ffffff;
             }
 
-            /* Contenido interno encima de la imagen decorativa */
+            /* Contenido interno */
             .card-login-content {
                 position: relative;
                 z-index: 2;
@@ -203,36 +184,37 @@
                 background: none;
                 border: none;
                 font-size: 1.5rem;
-                color: var(--muted-champagne);
+                color: #72635a;
                 cursor: pointer;
                 transition: color 0.3s ease, transform 0.3s ease;
                 z-index: 3;
             }
 
                 .close-login:hover {
-                    color: var(--champagne-ivory);
+                    color: #23170f;
                     transform: scale(1.1);
                 }
 
             .login-header-title {
-                font-family: 'Cinzel Decorative', serif;
+                font-family: 'Playfair Display', serif;
                 font-size: 2.5rem;
-                color: var(--champagne-ivory);
+                color: #23170f;
+                font-weight: 700;
             }
 
             .form-label {
-                font-family: 'Playfair Display', serif;
-                color: var(--champagne-ivory);
+                font-family: 'Lato', sans-serif;
+                color: #5c3a21;
                 font-size: 0.9rem;
-                font-weight: 500;
+                font-weight: 600;
                 margin-bottom: 0.4rem;
             }
 
             /* Inputs */
             .form-control {
-                background-color: var(--input-bg);
-                border: 1px solid var(--border-luxe);
-                color: #ffffff;
+                background-color: #fcfbfa;
+                border: 1px solid #e5dec9;
+                color: #332720;
                 border-radius: 8px;
                 padding: 0.75rem 1rem;
                 font-size: 0.95rem;
@@ -240,27 +222,28 @@
             }
 
                 .form-control::placeholder {
-                    color: rgba(194, 179, 165, 0.5);
-                    font-style: italic;
+                    color: #a09184;
+                    font-style: normal;
                 }
 
                 .form-control:focus {
-                    background-color: rgba(255, 255, 255, 0.1);
-                    border-color: var(--champagne-ivory);
-                    box-shadow: 0 0 10px rgba(245, 235, 225, 0.25);
-                    color: #ffffff;
+                    background-color: #ffffff;
+                    border-color: #c5a059;
+                    box-shadow: 0 0 0 0.25rem rgba(197, 160, 89, 0.2);
+                    color: #332720;
                 }
 
             .input-group-text {
-                background-color: rgba(255, 255, 255, 0.03);
-                border-color: var(--border-luxe);
-                color: var(--muted-champagne);
+                background-color: #fcfbfa;
+                border: 1px solid #e5dec9;
+                border-right: none;
+                color: #72635a;
                 border-radius: 8px 0 0 8px;
             }
 
             .input-group:focus-within .input-group-text {
-                color: var(--champagne-ivory);
-                border-color: var(--champagne-ivory);
+                color: #5c3a21;
+                border-color: #c5a059;
             }
 
             .input-group > .form-control {
@@ -269,22 +252,22 @@
 
             /* Botón de envío */
             .btn-luxe {
-                background-color: var(--dark-espresso) !important;
-                border: 1px solid var(--border-luxe) !important;
-                color: var(--champagne-ivory) !important;
+                background-color: #5c3a21 !important;
+                border: 1px solid #5c3a21 !important;
+                color: #ffffff !important;
                 border-radius: 8px;
-                font-family: 'Playfair Display', serif;
-                font-weight: 600;
+                font-family: 'Lato', sans-serif;
+                font-weight: 700;
                 letter-spacing: 0.5px;
-                transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-                box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 12px rgba(92, 58, 33, 0.15);
             }
 
                 .btn-luxe:hover {
-                    background-color: #31231a !important;
+                    background-color: #4a2e1a !important;
+                    border-color: #4a2e1a !important;
                     color: #ffffff !important;
-                    border-color: var(--champagne-ivory) !important;
-                    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+                    box-shadow: 0 8px 20px rgba(92, 58, 33, 0.25);
                     transform: translateY(-2px);
                 }
 
@@ -294,10 +277,11 @@
                 }
 
             .alert-danger {
-                background-color: rgba(255, 255, 255, 0.08) !important;
-                border-color: rgba(245, 235, 225, 0.2) !important;
-                color: var(--champagne-ivory) !important;
+                background-color: #fce4d6 !important;
+                border-color: #fce4d6 !important;
+                color: #843c0c !important;
                 border-radius: 8px;
+                font-family: 'Lato', sans-serif;
             }
 
             body.login-open {
@@ -327,8 +311,9 @@
 
             <div class="card-login-content">
                 <div class="text-center mb-4">
-                    <h3 class="login-header-title mb-1">QualityDoc</h3>
-                    <p class="small italic text-uppercase tracking-wider" style="color: var(--muted-champagne); font-size: 0.75rem;">Autenticación Administrativa</p>
+                    <i class="bi bi-journal-bookmark-fill" style="font-size: 3rem; color: #c5a059;"></i>
+                    <h3 class="login-header-title mb-1 mt-2">QualityDoc</h3>
+                    <p class="small text-uppercase tracking-wider" style="color: #72635a; font-size: 0.75rem;">Autenticación Administrativa</p>
                 </div>
 
                 <form asp-controller="Auth" asp-action="Login" method="post">

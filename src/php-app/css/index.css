@@ -1,7 +1,7 @@
 /* Estilos Personalizados: Sistema de Gestión Documental (SGD) */
 /* Estilo: Académico, Académico-Elegante (Tonos Café y Beige) */
 
-@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Lora:ital,wght@0,400..700;1,400..700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 
 :root {
     /* Paleta de Colores Café, Bronce y Beige */
@@ -26,7 +26,7 @@
     /* Tipografías */
     --font-title: 'Playfair Display', serif;
     --font-body: 'Lora', serif;
-    --font-sans: 'Plus Jakarta Sans', sans-serif;
+    --font-sans: 'Lato', 'Plus Jakarta Sans', sans-serif;
 }
 
 /* Estilos de Cuerpo y Layout */
@@ -355,7 +355,7 @@ h1, h2, h3, h4, h5, h6, .brand-font {
 
 /* Estilos de Login */
 .login-body {
-    background: linear-gradient(135deg, #23170f 0%, #5c3a21 100%);
+    background-color: var(--bg-color); /* #f7f4ed */
     min-height: 100vh;
     display: flex;
     align-items: center;
@@ -366,11 +366,32 @@ h1, h2, h3, h4, h5, h6, .brand-font {
 .login-card {
     background-color: #fff;
     border-radius: 16px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-    max-width: 480px;
+    box-shadow: 0 15px 35px rgba(92, 58, 33, 0.08);
+    max-width: 450px;
     width: 100%;
     padding: 2.5rem;
-    border: 1px solid rgba(197, 160, 89, 0.3);
+    border: 1px solid var(--border-color); /* #e5dec9 */
+    border-top: 5px solid var(--color-primary); /* #5c3a21 */
+}
+
+/* Grupos de entrada elegantes con iconos para el Login */
+.login-card .input-group-text {
+    background-color: #fcfbfa;
+    border: 1px solid var(--border-color);
+    border-right: none;
+    color: var(--text-muted);
+    border-radius: 8px 0 0 8px;
+    padding-left: 0.9rem;
+    padding-right: 0.9rem;
+}
+
+.login-card .input-group .form-control-elegant {
+    border-radius: 0 8px 8px 0 !important;
+}
+
+.login-card .input-group:focus-within .input-group-text {
+    border-color: var(--color-accent);
+    color: var(--color-primary);
 }
 
 .login-logo {
