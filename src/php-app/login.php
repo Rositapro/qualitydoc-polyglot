@@ -187,12 +187,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </button>
         <div class="collapse mt-2 text-start font-sans" id="credencialesDemo" style="font-size: 0.75rem;">
             <div class="p-2 rounded bg-light border border-light-subtle">
-                <strong>Empresa 1:</strong><br>
-                • Admin: <code>juan@empresa1.com</code> / <code>12345</code><br>
-                • Colaborador: <code>ana@empresa1.com</code> / <code>12345</code><br><br>
-                <strong>Empresa 2:</strong><br>
-                • Admin: <code>carlos@empresa2.com</code> / <code>12345</code><br>
-                • Colaborador: <code>maria@empresa2.com</code> / <code>12345</code>
+                <strong>Empresa 1 (Empresa Maestra):</strong><br>
+                • Admin: <code>admin_empresa@qualitydoc.com</code> / <code>Document2026!</code><br><br>
+                <strong>Empresa 2 (KittyBeauty / Tu Empresa):</strong><br>
+                • Admin: <code>administrador@qualitydoc.com</code> / <code>Document2026!</code><br>
+                • Autor: <code>autor@qualitydoc.com</code> / <code>Document2026!</code><br>
+                • Revisor: <code>revisor@qualitydoc.com</code> / <code>Document2026!</code><br>
+                • Aprobador: <code>aprobador@qualitydoc.com</code> / <code>Document2026!</code><br>
+                • Lector: <code>lector@qualitydoc.com</code> / <code>Document2026!</code>
             </div>
         </div>
     </div>

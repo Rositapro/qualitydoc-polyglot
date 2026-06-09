@@ -55,15 +55,9 @@ $empresa_id = $_SESSION['empresaid'] ?? 0;
                     </a>
                 </li>
                 <li>
-                    <a href="logs.php" class="nav-item-link <?php echo ($pagina_actual == 'logs.php') ? 'active' : ''; ?>">
-                        <i class="bi bi-shield-check"></i>
-                        <span>Auditoría (Logs)</span>
-                    </a>
-                </li>
-                <li>
                     <a href="reportes.php" class="nav-item-link <?php echo ($pagina_actual == 'reportes.php') ? 'active' : ''; ?>">
                         <i class="bi bi-bar-chart-line"></i>
-                        <span>Reportes</span>
+                        <span>Reportes de Auditoría</span>
                     </a>
                 </li>
             </ul>
@@ -117,7 +111,7 @@ $empresa_id = $_SESSION['empresaid'] ?? 0;
                         echo "Emitir Sugerencia";
                         break;
                     case 'reportes.php':
-                        echo "Reportes Operativos";
+                        echo "Reportes de Auditoría";
                         break;
                     default:
                         echo "Sistema de Gestión Documental";

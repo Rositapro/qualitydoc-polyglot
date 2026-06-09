@@ -43,6 +43,36 @@ $filtro_iso = isset($_GET['filtro_iso']) ? trim($_GET['filtro_iso']) : '';
 $filtro_estado = isset($_GET['filtro_estado']) ? trim($_GET['filtro_estado']) : '';
 $filtro_search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
+// Invocar al microservicio de búsqueda en MongoDB si se ingresó texto
+$mongo_doc_ids = [];
+$search_via_mongo = false;
+
+if (!empty($filtro_search)) {
+    $url = SEARCH_API_URL . "?q=" . urlencode($filtro_search) . "&empresaid=" . intval($empresa_id);
+    
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+    // Ignorar certificación SSL en desarrollo local
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    
+    $res = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    
+    if ($http_code === 200 && $res !== false) {
+        $json = json_decode($res, true);
+        if (isset($json['success']) && $json['success'] === true && isset($json['data'])) {
+            $search_via_mongo = true;
+            foreach ($json['data'] as $doc) {
+                if (isset($doc['metadata']['documentId'])) {
+                    $mongo_doc_ids[] = intval($doc['metadata']['documentId']);
+                }
+            }
+        }
+    }
+}
+
 // 3. Consultar total de documentos que cumplen los filtros (para paginación)
 try {
     $sql_count = "SELECT COUNT(*) AS total FROM documento WHERE empresaid = :empresa";
@@ -59,8 +89,23 @@ try {
     }
 
     if (!empty($filtro_search)) {
-        $sql_count .= " AND (titulodocumento ILIKE :search OR codigo ILIKE :search)";
-        $params['search'] = '%' . $filtro_search . '%';
+        if ($search_via_mongo) {
+            if (count($mongo_doc_ids) > 0) {
+                $placeholders = [];
+                foreach ($mongo_doc_ids as $index => $id) {
+                    $key = "mongo_id_count_" . $index;
+                    $placeholders[] = ":" . $key;
+                    $params[$key] = "QD-" . $id;
+                }
+                $sql_count .= " AND codigo IN (" . implode(",", $placeholders) . ")";
+            } else {
+                $sql_count .= " AND 1=0"; // No coincide ningún id en Mongo
+            }
+        } else {
+            // Fallback a SQL relacional tradicional en caso de fallo del microservicio
+            $sql_count .= " AND (titulodocumento ILIKE :search OR codigo ILIKE :search)";
+            $params['search'] = '%' . $filtro_search . '%';
+        }
     }
 
     $stmt_count = $pdo->prepare($sql_count);
@@ -83,17 +128,35 @@ $offset = ($pagina_solicitada - 1) * $limite_pag;
 // 5. Consultar documentos filtrados y paginados (Estricto por empresaid)
 try {
     $sql = "SELECT * FROM documento WHERE empresaid = :empresa";
+    $params_select = ['empresa' => $empresa_id];
     
     if (!empty($filtro_iso)) {
         $sql .= " AND idiso = :iso";
+        $params_select['iso'] = $filtro_iso;
     }
 
     if (!empty($filtro_estado)) {
         $sql .= " AND estado = :estado";
+        $params_select['estado'] = $filtro_estado;
     }
 
     if (!empty($filtro_search)) {
-        $sql .= " AND (titulodocumento ILIKE :search OR codigo ILIKE :search)";
+        if ($search_via_mongo) {
+            if (count($mongo_doc_ids) > 0) {
+                $placeholders = [];
+                foreach ($mongo_doc_ids as $index => $id) {
+                    $key = "mongo_id_select_" . $index;
+                    $placeholders[] = ":" . $key;
+                    $params_select[$key] = "QD-" . $id;
+                }
+                $sql .= " AND codigo IN (" . implode(",", $placeholders) . ")";
+            } else {
+                $sql .= " AND 1=0";
+            }
+        } else {
+            $sql .= " AND (titulodocumento ILIKE :search OR codigo ILIKE :search)";
+            $params_select['search'] = '%' . $filtro_search . '%';
+        }
     }
 
     // Ordenar por código y versión de forma descendente para ver la última versión primero
@@ -104,7 +167,7 @@ try {
     $sql = str_replace(':offset', (int)$offset, $sql);
 
     $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
+    $stmt->execute($params_select);
     $documentos = $stmt->fetchAll();
 
 } catch (PDOException $e) {
@@ -112,7 +175,6 @@ try {
     $documentos = [];
 }
 ?>
-
 <div class="row mb-4 font-sans">
     <div class="col-12 col-md-6 col-lg-3">
         <div class="card-elegant stat-card p-3">

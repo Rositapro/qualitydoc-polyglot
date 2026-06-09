@@ -64,10 +64,14 @@ namespace QualityDocc.Infrastructure.Services
 
         public async Task<List<string>> SearchDocumentsAsync(string query, int companyId)
         {
+            Console.WriteLine($"SearchDocumentsAsync CALL: query='{query}', companyId={companyId}");
             var results = new List<string>();
 
-            // Filtro por empresa
-            var filter = Builders<BsonDocument>.Filter.Eq("empresaid", companyId);
+            // Filtro por empresa y por estado vigente
+            var filter = Builders<BsonDocument>.Filter.And(
+                Builders<BsonDocument>.Filter.Eq("empresaid", companyId),
+                Builders<BsonDocument>.Filter.Eq("status", "Vigente")
+            );
 
             if (!string.IsNullOrWhiteSpace(query))
             {
@@ -78,41 +82,70 @@ namespace QualityDocc.Infrastructure.Services
 
             try
             {
+                Console.WriteLine("Executing primary Find query on MongoDB...");
                 var matches = await _collection.Find(filter)
                     .Limit(20)
                     .ToListAsync();
+                Console.WriteLine($"Primary query results matches count: {matches.Count}");
+
+                // Fallback: Si no hay resultados de búsqueda por texto pero hay consulta, probamos búsqueda con Regex (para sub-cadenas concatenadas)
+                if (matches.Count == 0 && !string.IsNullOrWhiteSpace(query))
+                {
+                    Console.WriteLine("Matches are 0, falling back to Regex query...");
+                    var regexFilter = Builders<BsonDocument>.Filter.Or(
+                        Builders<BsonDocument>.Filter.Regex("title", new BsonRegularExpression(query, "i")),
+                        Builders<BsonDocument>.Filter.Regex("textContent", new BsonRegularExpression(query, "i")),
+                        Builders<BsonDocument>.Filter.Regex("body", new BsonRegularExpression(query, "i"))
+                    );
+                    var basicFilter = Builders<BsonDocument>.Filter.And(
+                        Builders<BsonDocument>.Filter.Eq("empresaid", companyId),
+                        Builders<BsonDocument>.Filter.Eq("status", "Vigente"),
+                        regexFilter
+                    );
+                    matches = await _collection.Find(basicFilter).Limit(20).ToListAsync();
+                    Console.WriteLine($"Regex query results matches count: {matches.Count}");
+                }
 
                 foreach (var doc in matches)
                 {
-                    results.Add(doc.ToJson());
+                    results.Add(doc.ToJson(new MongoDB.Bson.IO.JsonWriterSettings { OutputMode = MongoDB.Bson.IO.JsonOutputMode.RelaxedExtendedJson }));
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine($"SearchDocumentsAsync EXCEPTION: {ex.Message} | StackTrace: {ex.StackTrace}");
                 // Si falla por falta de índice de texto, hacemos una búsqueda básica con Regex sobre el título o el cuerpo
                 if (!string.IsNullOrWhiteSpace(query))
                 {
                     var regexFilter = Builders<BsonDocument>.Filter.Or(
                         Builders<BsonDocument>.Filter.Regex("title", new BsonRegularExpression(query, "i")),
+                        Builders<BsonDocument>.Filter.Regex("textContent", new BsonRegularExpression(query, "i")),
                         Builders<BsonDocument>.Filter.Regex("body", new BsonRegularExpression(query, "i"))
                     );
                     var basicFilter = Builders<BsonDocument>.Filter.And(
                         Builders<BsonDocument>.Filter.Eq("empresaid", companyId),
+                        Builders<BsonDocument>.Filter.Eq("status", "Vigente"),
                         regexFilter
                     );
 
                     var matches = await _collection.Find(basicFilter).Limit(20).ToListAsync();
+                    Console.WriteLine($"Catch Regex query results matches count: {matches.Count}");
                     foreach (var doc in matches)
                     {
-                        results.Add(doc.ToJson());
+                        results.Add(doc.ToJson(new MongoDB.Bson.IO.JsonWriterSettings { OutputMode = MongoDB.Bson.IO.JsonOutputMode.RelaxedExtendedJson }));
                     }
                 }
                 else
                 {
-                    var matches = await _collection.Find(Builders<BsonDocument>.Filter.Eq("empresaid", companyId)).Limit(20).ToListAsync();
+                    var basicFilter = Builders<BsonDocument>.Filter.And(
+                        Builders<BsonDocument>.Filter.Eq("empresaid", companyId),
+                        Builders<BsonDocument>.Filter.Eq("status", "Vigente")
+                    );
+                    var matches = await _collection.Find(basicFilter).Limit(20).ToListAsync();
+                    Console.WriteLine($"Catch empty query results matches count: {matches.Count}");
                     foreach (var doc in matches)
                     {
-                        results.Add(doc.ToJson());
+                        results.Add(doc.ToJson(new MongoDB.Bson.IO.JsonWriterSettings { OutputMode = MongoDB.Bson.IO.JsonOutputMode.RelaxedExtendedJson }));
                     }
                 }
             }

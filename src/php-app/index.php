@@ -56,8 +56,8 @@ try {
                     <a href="documentos.php" class="btn btn-elegant-accent px-4 py-2" id="btn-welcome-explore">
                         <i class="bi bi-folder2-open me-2"></i> Explorar Documentos
                     </a>
-                    <a href="logs.php" class="btn btn-outline-light px-4 py-2 font-sans" id="btn-welcome-logs">
-                        <i class="bi bi-shield-check me-2"></i> Ver Auditoría
+                    <a href="reportes.php" class="btn btn-outline-light px-4 py-2 font-sans" id="btn-welcome-logs">
+                        <i class="bi bi-bar-chart-line me-2"></i> Ver Reportes de Auditoría
                     </a>
                 </div>
             </div>
@@ -145,12 +145,12 @@ try {
                             <i class="bi bi-shield-check fs-4"></i>
                         </div>
                         <div>
-                            <h6 class="mb-1 fw-bold text-dark">Auditoría en Tiempo Real</h6>
+                            <h6 class="mb-1 fw-bold text-dark">Reportes de Auditoría</h6>
                             <p class="text-muted mb-2" style="font-size: 0.85rem;">
-                                Consulta el registro seguro (logs) de quién visualizó, descargó o sugirió cambios sobre la documentación.
+                                Consulta el registro de auditoría en tiempo real y genera reportes de uso de los documentos de tu empresa.
                             </p>
-                            <a href="logs.php" class="btn btn-sm btn-link p-0 text-decoration-none fw-bold" style="color: var(--color-primary);">
-                                Ir a Auditoría <i class="bi bi-chevron-right" style="font-size: 0.7rem;"></i>
+                            <a href="reportes.php" class="btn btn-sm btn-link p-0 text-decoration-none fw-bold" style="color: var(--color-primary);">
+                                Ver Reportes <i class="bi bi-chevron-right" style="font-size: 0.7rem;"></i>
                             </a>
                         </div>
                     </div>

@@ -45,9 +45,9 @@ namespace QualityDocc.MVC.Controllers
                         parsedDocuments.Add(node);
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Ignorar errores individuales de parseo
+                    Console.WriteLine($"SmartSearchController PARSE ERROR: {ex.Message} | JSON: {json}");
                 }
             }
 

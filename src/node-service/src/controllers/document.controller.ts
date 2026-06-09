@@ -102,7 +102,26 @@ export const searchDocuments = async (
       query = query.sort({ createdAt: -1 });
     }
 
-    const matches = await query.exec();
+    let matches = await query.exec();
+
+    // Fallback: si no hay resultados por búsqueda de texto y hay consulta 'q', buscamos por regex
+    if (matches.length === 0 && q && typeof q === 'string' && q.trim() !== '') {
+      const regexQuery = new RegExp(q.trim(), 'i');
+      const fallbackQueryObj: any = {
+        status: 'Vigente',
+        $or: [
+          { title: regexQuery },
+          { textContent: regexQuery }
+        ]
+      };
+      if (extension && typeof extension === 'string' && extension.trim() !== '') {
+        fallbackQueryObj.fileExtension = extension.trim().toLowerCase();
+      }
+      if (empresaid) {
+        fallbackQueryObj.empresaid = Number(empresaid);
+      }
+      matches = await DocumentModel.find(fallbackQueryObj).limit(20).exec();
+    }
 
     console.log(`Búsqueda realizada: q="${q || ''}", extension="${extension || ''}", empresaid="${empresaid || ''}". Resultados encontrados: ${matches.length}`);
 

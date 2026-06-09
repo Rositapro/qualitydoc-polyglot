@@ -6,9 +6,10 @@ require_once __DIR__ . '/includes/db.php';
 
 $empresa_id = $_SESSION['empresaid'] ?? 0;
 
-// 1. Procesar rango de fechas por defecto (últimos 30 días)
+// 1. Procesar rango de fechas por defecto (últimos 30 días) y filtros de acción
 $fecha_inicio = isset($_GET['fecha_inicio']) ? trim($_GET['fecha_inicio']) : date('Y-m-d', strtotime('-30 days'));
 $fecha_fin = isset($_GET['fecha_fin']) ? trim($_GET['fecha_fin']) : date('Y-m-d');
+$filtro_accion = isset($_GET['filtro_accion']) ? trim($_GET['filtro_accion']) : '';
 
 // Ajustar las fechas para incluir todo el día en las consultas (timestamp)
 $query_inicio = $fecha_inicio . " 00:00:00";
@@ -17,7 +18,7 @@ $query_fin = $fecha_fin . " 23:59:59";
 // 2. LÓGICA DE EXPORTACIÓN A EXCEL/CSV (Antes de pintar cualquier HTML)
 if (isset($_GET['export_csv']) && $_GET['export_csv'] == 1) {
     try {
-        $stmt_csv = $pdo->prepare("
+        $sql_csv = "
             SELECT 
                 l.idlog, 
                 u.nombreusuario, 
@@ -31,13 +32,23 @@ if (isset($_GET['export_csv']) && $_GET['export_csv'] == 1) {
             INNER JOIN usuarios u ON l.idusuario = u.idusuario AND u.empresaid = :empresa
             INNER JOIN documento d ON l.iddocumento = d.iddocumento AND d.empresaid = :empresa
             WHERE l.empresaid = :empresa AND l.fecha BETWEEN :inicio AND :fin
-            ORDER BY l.fecha DESC
-        ");
-        $stmt_csv->execute([
+        ";
+        
+        $params_csv = [
             'empresa' => $empresa_id,
             'inicio' => $query_inicio,
             'fin' => $query_fin
-        ]);
+        ];
+        
+        if (!empty($filtro_accion)) {
+            $sql_csv .= " AND l.accion = :accion";
+            $params_csv['accion'] = $filtro_accion;
+        }
+        
+        $sql_csv .= " ORDER BY l.fecha DESC";
+        
+        $stmt_csv = $pdo->prepare($sql_csv);
+        $stmt_csv->execute($params_csv);
         $csv_logs = $stmt_csv->fetchAll();
 
         // Configurar cabeceras de descarga de CSV
@@ -130,7 +141,7 @@ try {
     $top_documentos = $stmt_top->fetchAll();
 
     // D. Tabla Detallada del Reporte actual
-    $stmt_details = $pdo->prepare("
+    $sql_details = "
         SELECT 
             l.idlog, 
             u.nombreusuario, 
@@ -144,13 +155,23 @@ try {
         INNER JOIN usuarios u ON l.idusuario = u.idusuario AND u.empresaid = :empresa
         INNER JOIN documento d ON l.iddocumento = d.iddocumento AND d.empresaid = :empresa
         WHERE l.empresaid = :empresa AND l.fecha BETWEEN :inicio AND :fin
-        ORDER BY l.fecha DESC
-    ");
-    $stmt_details->execute([
+    ";
+    
+    $params_details = [
         'empresa' => $empresa_id,
         'inicio' => $query_inicio,
         'fin' => $query_fin
-    ]);
+    ];
+
+    if (!empty($filtro_accion)) {
+        $sql_details .= " AND l.accion = :accion";
+        $params_details['accion'] = $filtro_accion;
+    }
+
+    $sql_details .= " ORDER BY l.fecha DESC";
+    
+    $stmt_details = $pdo->prepare($sql_details);
+    $stmt_details->execute($params_details);
     $report_logs = $stmt_details->fetchAll();
 
 } catch (PDOException $e) {
@@ -271,19 +292,29 @@ try {
     </div>
     <div class="card-elegant-body">
         <form method="GET" action="reportes.php" class="row g-3">
-            <div class="col-12 col-md-4">
+            <div class="col-12 col-md-3">
                 <label for="fecha_inicio" class="form-label form-label-elegant">Fecha Inicio</label>
                 <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control form-control-elegant" value="<?php echo htmlspecialchars($fecha_inicio); ?>" required>
             </div>
             
-            <div class="col-12 col-md-4">
+            <div class="col-12 col-md-3">
                 <label for="fecha_fin" class="form-label form-label-elegant">Fecha Fin</label>
                 <input type="date" name="fecha_fin" id="fecha_fin" class="form-control form-control-elegant" value="<?php echo htmlspecialchars($fecha_fin); ?>" required>
             </div>
+
+            <div class="col-12 col-md-3">
+                <label for="filtro_accion" class="form-label form-label-elegant">Acción (Operación)</label>
+                <select name="filtro_accion" id="filtro_accion" class="form-select form-control-elegant">
+                    <option value="" <?php echo ($filtro_accion === '') ? 'selected' : ''; ?>>-- Todas las acciones --</option>
+                    <option value="visualizacion" <?php echo ($filtro_accion === 'visualizacion') ? 'selected' : ''; ?>>Ver</option>
+                    <option value="descarga" <?php echo ($filtro_accion === 'descarga') ? 'selected' : ''; ?>>Descargar</option>
+                    <option value="sugerencia" <?php echo ($filtro_accion === 'sugerencia') ? 'selected' : ''; ?>>Sugerencia</option>
+                </select>
+            </div>
             
-            <div class="col-12 col-md-4 d-flex align-items-end gap-2">
+            <div class="col-12 col-md-3 d-flex align-items-end gap-2">
                 <button type="submit" class="btn btn-elegant-primary flex-grow-1">
-                    <i class="bi bi-arrow-repeat me-1"></i> Generar Reporte
+                    <i class="bi bi-arrow-repeat me-1"></i> Filtrar
                 </button>
                 <a href="reportes.php" class="btn btn-elegant-outline" title="Restaurar Fechas">
                     <i class="bi bi-arrow-counterclockwise"></i>
@@ -295,7 +326,7 @@ try {
 
 <!-- Botones de Acción (Exportación / Impresión) -->
 <div class="d-flex justify-content-end gap-3 mb-4 btn-actions-print no-print font-sans">
-    <a href="reportes.php?export_csv=1&fecha_inicio=<?php echo urlencode($fecha_inicio); ?>&fecha_fin=<?php echo urlencode($fecha_fin); ?>" class="btn btn-elegant-outline d-flex align-items-center gap-2" id="btn-export-csv">
+    <a href="reportes.php?export_csv=1&fecha_inicio=<?php echo urlencode($fecha_inicio); ?>&fecha_fin=<?php echo urlencode($fecha_fin); ?>&filtro_accion=<?php echo urlencode($filtro_accion); ?>" class="btn btn-elegant-outline d-flex align-items-center gap-2" id="btn-export-csv">
         <i class="bi bi-file-earmark-excel-fill text-success"></i> Exportar Excel / CSV
     </a>
     <button onclick="window.print();" class="btn btn-elegant-primary d-flex align-items-center gap-2" id="btn-print-report">
@@ -430,71 +461,120 @@ try {
     </div>
 </div>
 
-<!-- Historial Detallado de Operaciones -->
-<div class="card-elegant">
-    <div class="card-elegant-header d-flex justify-content-between align-items-center">
-        <h5 class="m-0 font-title"><i class="bi bi-list-check me-2 text-primary"></i>Historial Detallado de Operaciones</h5>
-        <span class="badge bg-dark font-sans">Total en Rango: <?php echo count($report_logs); ?></span>
-    </div>
-    
-    <div class="table-responsive">
-        <table class="table-elegant font-sans" style="font-size: 0.9rem;">
-            <thead>
-                <tr>
-                    <th style="width: 80px;">Ref</th>
-                    <th>Usuario</th>
-                    <th>Acción</th>
-                    <th>Documento / Código</th>
-                    <th style="width: 180px;">Fecha y Hora</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (count($report_logs) > 0): ?>
-                    <?php foreach ($report_logs as $log): ?>
+<!-- Historial Detallado y Línea de Tiempo de Auditoría -->
+<div class="row font-sans">
+    <!-- Historial Detallado de Operaciones (col-12 col-xl-8) -->
+    <div class="col-12 col-xl-8 mb-4">
+        <div class="card-elegant h-100">
+            <div class="card-elegant-header d-flex justify-content-between align-items-center">
+                <h5 class="m-0 font-title"><i class="bi bi-list-check me-2 text-primary"></i>Historial Detallado de Operaciones</h5>
+                <span class="badge bg-dark font-sans">Total en Rango: <?php echo count($report_logs); ?></span>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table-elegant" style="font-size: 0.9rem;">
+                    <thead>
                         <tr>
-                            <td class="text-muted">#<?php echo $log['idlog']; ?></td>
-                            <td>
-                                <strong><?php echo htmlspecialchars($log['nombreusuario']); ?></strong><br>
-                                <small class="text-muted" style="font-size: 0.75rem;"><?php echo htmlspecialchars(ucfirst($log['rol'])); ?></small>
-                            </td>
-                            <td>
-                                <?php if ($log['accion'] === 'visualizacion'): ?>
-                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3">
-                                        <i class="bi bi-eye-fill me-1"></i> Ver
-                                    </span>
-                                <?php elseif ($log['accion'] === 'descarga'): ?>
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3">
-                                        <i class="bi bi-download me-1"></i> Descargar
-                                    </span>
-                                <?php else: ?>
-                                    <span class="badge bg-purple-subtle text-purple border border-purple-subtle rounded-pill px-3" style="background-color: #f3e8ff; color: #6b21a8; border-color: #e9d5ff;">
-                                        <i class="bi bi-chat-left-text-fill me-1"></i> Sugerencia
-                                    </span>
-                                <?php endif; ?>
-                            </td>
-                            <td>
-                                <div class="d-flex flex-column">
-                                    <span class="text-truncate" style="max-width: 300px;" title="<?php echo htmlspecialchars($log['titulodocumento']); ?>">
-                                        <?php echo htmlspecialchars($log['titulodocumento']); ?>
-                                    </span>
-                                    <small class="text-muted"><code><?php echo htmlspecialchars($log['codigo']); ?></code> [<?php echo htmlspecialchars($log['idiso']); ?>]</small>
-                                </div>
-                            </td>
-                            <td class="text-muted">
-                                <?php echo date('d/m/Y H:i:s', strtotime($log['fecha'])); ?>
-                            </td>
+                            <th style="width: 80px;">Ref</th>
+                            <th>Usuario</th>
+                            <th>Acción</th>
+                            <th>Documento / Código</th>
+                            <th style="width: 180px;">Fecha y Hora</th>
                         </tr>
-                    <?php endforeach; ?>
+                    </thead>
+                    <tbody>
+                        <?php if (count($report_logs) > 0): ?>
+                            <?php foreach ($report_logs as $log): ?>
+                                <tr>
+                                    <td class="text-muted">#<?php echo $log['idlog']; ?></td>
+                                    <td>
+                                        <strong><?php echo htmlspecialchars($log['nombreusuario']); ?></strong><br>
+                                        <small class="text-muted" style="font-size: 0.75rem;"><?php echo htmlspecialchars(ucfirst($log['rol'])); ?></small>
+                                    </td>
+                                    <td>
+                                        <?php if ($log['accion'] === 'visualizacion'): ?>
+                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3">
+                                                <i class="bi bi-eye-fill me-1"></i> Ver
+                                            </span>
+                                        <?php elseif ($log['accion'] === 'descarga'): ?>
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3">
+                                                <i class="bi bi-download me-1"></i> Descargar
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="badge bg-purple-subtle text-purple border border-purple-subtle rounded-pill px-3" style="background-color: #f3e8ff; color: #6b21a8; border-color: #e9d5ff;">
+                                                <i class="bi bi-chat-left-text-fill me-1"></i> Sugerencia
+                                            </span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-column">
+                                            <span class="text-truncate" style="max-width: 250px;" title="<?php echo htmlspecialchars($log['titulodocumento']); ?>">
+                                                <?php echo htmlspecialchars($log['titulodocumento']); ?>
+                                            </span>
+                                            <small class="text-muted"><code><?php echo htmlspecialchars($log['codigo']); ?></code> [<?php echo htmlspecialchars($log['idiso']); ?>]</small>
+                                        </div>
+                                    </td>
+                                    <td class="text-muted">
+                                        <?php echo date('d/m/Y H:i:s', strtotime($log['fecha'])); ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <i class="bi bi-database-x fs-2 d-block mb-3"></i>
+                                    No se encontraron registros de operaciones en el periodo seleccionado.
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Línea de Tiempo de Auditoría (col-12 col-xl-4) -->
+    <div class="col-12 col-xl-4 mb-4">
+        <div class="card-elegant h-100">
+            <div class="card-elegant-header">
+                <h5 class="m-0 font-title"><i class="bi bi-activity text-warning me-2"></i>Línea de Tiempo Reciente</h5>
+            </div>
+            <div class="card-elegant-body" style="max-height: 500px; overflow-y: auto;">
+                <?php if (count($report_logs) > 0): ?>
+                    <div class="timeline-elegant">
+                        <?php 
+                        // Mostrar los últimos 8 registros en el timeline para evitar sobrecargar la vista
+                        $timeline_logs = array_slice($report_logs, 0, 8);
+                        foreach ($timeline_logs as $log): 
+                            $class_timeline = $log['accion']; // visualizacion, descarga, sugerencia
+                        ?>
+                            <div class="timeline-item <?php echo $class_timeline; ?>">
+                                <div class="timeline-date">
+                                    <?php echo date('d M, H:i', strtotime($log['fecha'])); ?>
+                                </div>
+                                <div class="timeline-text mt-1">
+                                    <strong><?php echo htmlspecialchars($log['nombreusuario']); ?></strong>
+                                    <?php if ($log['accion'] === 'visualizacion'): ?>
+                                        visualizó el documento
+                                    <?php elseif ($log['accion'] === 'descarga'): ?>
+                                        descargó el documento
+                                    <?php else: ?>
+                                        dejó una sugerencia en el documento
+                                    <?php endif; ?>
+                                    <br>
+                                    <small class="text-muted"><code><?php echo htmlspecialchars($log['codigo']); ?></code> - <?php echo htmlspecialchars($log['titulodocumento']); ?></small>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
                 <?php else: ?>
-                    <tr>
-                        <td colspan="5" class="text-center py-5 text-muted">
-                            <i class="bi bi-database-x fs-2 d-block mb-3"></i>
-                            No se encontraron registros de operaciones en el periodo seleccionado.
-                        </td>
-                    </tr>
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-clock-history fs-2 d-block mb-2"></i>
+                        Sin actividad reciente en este rango.
+                    </div>
                 <?php endif; ?>
-            </tbody>
-        </table>
+            </div>
+        </div>
     </div>
 </div>
 
