@@ -141,12 +141,20 @@ namespace QualityDocc.MVC.Controllers
 
                         if (lastVersion != null)
                         {
-                            // Brincar al siguiente entero (0.1 -> 1.0, 1.2 -> 2.0, etc.)
+                            // Si la versión es menor a 1.0 (0.1, 0.2, etc.), al aprobar pasa a ser 1.0.
+                            // Si ya es 1.0 o superior (1.1, 1.2, etc.), al aprobar mantiene su número de versión original.
                             double currentVersion = lastVersion.VersionNumber;
-                            double nextMajorVersion = Math.Floor(currentVersion) + 1.0;
-                            lastVersion.VersionNumber = nextMajorVersion;
+                            if (currentVersion < 1.0)
+                            {
+                                lastVersion.VersionNumber = 1.0;
+                            }
+                            // Si es >= 1.0, se queda con su número actual (ej. 1.1, 1.2, etc.)
+
                             lastVersion.Status = "Vigente";
-                            lastVersion.ChangeLog = "APROBADO POR AUTORIZADOR: " + (notes ?? "Aprobación final.");
+
+                            // Preservamos el ChangeLog del autor y anexamos la nota del aprobador
+                            var authorLog = string.IsNullOrWhiteSpace(lastVersion.ChangeLog) ? "Carga inicial" : lastVersion.ChangeLog;
+                            lastVersion.ChangeLog = $"{authorLog} (Aprobado: {notes ?? "Aprobación final"})";
 
                             // 3. Buscar versiones anteriores que estén como "Vigente" y marcarlas como "Obsoleto"
                             var oldVersions = await _context.DocumentVersion

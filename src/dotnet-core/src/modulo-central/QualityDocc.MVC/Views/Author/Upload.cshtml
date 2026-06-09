@@ -181,10 +181,13 @@
                             <input type="hidden" name="CompanyId" value="@ViewBag.CompanyId" />
                         </div>
 
-                        <div class="mb-4">
-                            <label class="form-label custom-label">¿Qué cambios realizaste en esta versión? (ChangeLog)</label>
-                            <textarea name="ChangeLog" class="form-control" rows="2" placeholder="Ej: Se actualizó el índice y se corrigieron referencias..." required></textarea>
-                        </div>
+                        @if (Model.Id > 0)
+                        {
+                            <div class="mb-4">
+                                <label class="form-label custom-label">¿Qué cambios realizaste en esta versión? (ChangeLog)</label>
+                                <textarea name="ChangeLog" class="form-control" rows="2" placeholder="Ej: Se actualizó el índice y se corrigieron referencias..." required></textarea>
+                            </div>
+                        }
 
                         <div class="row g-3 mt-2">
                             <div class="col-12">

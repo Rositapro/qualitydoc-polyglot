@@ -35,6 +35,7 @@ namespace QualityDocc.Infrastructure.Services
                 { "body", pdfText },
                 { "textContent", pdfText },
                 { "empresaid", doc.CompanyId },
+                { "status", "Vigente" }, // Estado activo
                 { "createdAt", DateTime.UtcNow },
                 { "updatedAt", DateTime.UtcNow },
                 { "metadata", new BsonDocument
@@ -49,9 +50,15 @@ namespace QualityDocc.Infrastructure.Services
                 { "tags", new BsonArray { "document", doc.Iso?.Name ?? "ISO 9001" } }
             };
 
-            // Para mantener el historial en Mongo también, eliminamos la versión específica si ya existía (por id de versión)
-            // y luego insertamos la nueva versión.
+            // 1. Marcar versiones anteriores en MongoDB como "Obsoleto"
+            var filterObsolete = Builders<BsonDocument>.Filter.Eq("metadata.documentId", doc.Id);
+            var updateObsolete = Builders<BsonDocument>.Update.Set("status", "Obsoleto");
+            await _collection.UpdateManyAsync(filterObsolete, updateObsolete);
+
+            // 2. Eliminar la versión específica si ya existía (para evitar duplicación)
             await _collection.DeleteManyAsync(Builders<BsonDocument>.Filter.Eq("metadata.versionId", version.Id));
+
+            // 3. Insertar la nueva versión vigente
             await _collection.InsertOneAsync(mongoDoc);
         }
 

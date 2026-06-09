@@ -7,6 +7,7 @@ export interface IDocument extends Document {
   tags: string[];
   textContent: string;
   empresaid: number;
+  status: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -39,6 +40,11 @@ const DocumentSchema = new Schema<IDocument>(
     empresaid: {
       type: Number,
       default: 1,
+    },
+    status: {
+      type: String,
+      default: 'Vigente',
+      enum: ['Vigente', 'Obsoleto'],
     },
   },
   {

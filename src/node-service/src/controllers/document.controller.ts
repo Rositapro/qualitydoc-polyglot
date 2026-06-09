@@ -32,11 +32,11 @@ export const createDocument = async (
     const cleanTitle = title.trim();
     const cleanEmpresaId = empresaid ? Number(empresaid) : 1;
 
-    // Eliminar versiones anteriores del mismo documento para la misma empresa
-    await DocumentModel.deleteMany({
-      title: cleanTitle,
-      empresaid: cleanEmpresaId
-    });
+    // Marcar versiones anteriores del mismo documento como "Obsoleto"
+    await DocumentModel.updateMany(
+      { title: cleanTitle, empresaid: cleanEmpresaId },
+      { $set: { status: 'Obsoleto' } }
+    );
 
     // Crear y guardar la versión vigente en la base de datos
     const newDocument = new DocumentModel({
@@ -45,7 +45,8 @@ export const createDocument = async (
       metadata: metadata || {},
       tags: Array.isArray(tags) ? tags.map(t => String(t).trim()) : [],
       textContent: textContent.trim(),
-      empresaid: cleanEmpresaId
+      empresaid: cleanEmpresaId,
+      status: 'Vigente'
     });
 
     const savedDocument = await newDocument.save();
@@ -79,6 +80,7 @@ export const searchDocuments = async (
     const { q, extension, empresaid } = req.query;
 
     const queryObj: any = {};
+    queryObj.status = 'Vigente'; // Sólo retornar documentos vigentes
 
     if (q && typeof q === 'string' && q.trim() !== '') {
       queryObj.$text = { $search: q.trim() };

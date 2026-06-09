@@ -233,7 +233,7 @@ namespace QualityDocc.MVC.Controllers
                         Extension = extension,
                         IdUserCreate = currentUserId,
                         DateCreate = DateTime.Now,
-                        ChangeLog = Request.Form["ChangeLog"],
+                        ChangeLog = string.IsNullOrWhiteSpace(Request.Form["ChangeLog"]) ? "Carga inicial" : Request.Form["ChangeLog"].ToString(),
                         Status = action == "save" ? "Borrador" : "En Revisión"
                     };
 
@@ -299,6 +299,7 @@ namespace QualityDocc.MVC.Controllers
 
             var query = _context.Document
                                 .Include(d => d.Iso)
+                                .Include(d => d.Versions)
                                 .Where(d => d.CompanyId == currentUser.CompanyId)
                                 .AsQueryable();
 
