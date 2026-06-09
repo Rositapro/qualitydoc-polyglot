@@ -44,13 +44,13 @@ namespace QualityDocc.MVC.Controllers
             if (currentUser.CompanyId == null) // SuperAdmin (Sin Empresa asignada)
             {
                 totalDocuments = await _context.Document.CountAsync();
-                totalUsers = await _context.User.CountAsync(u => u.IsDeleted == false);
+                totalUsers = await _context.User.CountAsync(u => u.Status == true);
                 totalIsos = await _context.Iso.CountAsync();
             }
             else // Admin de Empresa Específica (Multi-tenant)
             {
                 totalDocuments = await _context.Document.CountAsync(d => d.CompanyId == currentUser.CompanyId);
-                totalUsers = await _context.User.CountAsync(u => u.CompanyId == currentUser.CompanyId && u.IsDeleted == false);
+                totalUsers = await _context.User.CountAsync(u => u.CompanyId == currentUser.CompanyId && u.Status == true);
                 totalIsos = await _context.Iso.CountAsync(c => c.CompanyId == currentUser.CompanyId);
             }
 
@@ -89,7 +89,7 @@ namespace QualityDocc.MVC.Controllers
             IQueryable<User> usersQuery = _context.User
                 .Include(u => u.Role)
                 .Include(u => u.Company)
-                .Where(u => u.IsDeleted == false);
+                .Where(u => u.Status == true); // Solo usuarios activos/vigentes
 
             if (currentUser.CompanyId != null) // Filtrado Tenant
             {
@@ -102,11 +102,11 @@ namespace QualityDocc.MVC.Controllers
 
             if (currentUser.CompanyId == null)
             {
-                ViewBag.Companies = await _context.Company.ToListAsync();
+                ViewBag.Companies = await _context.Company.Where(c => c.Status == true).ToListAsync();
             }
             else
             {
-                ViewBag.Companies = await _context.Company.Where(c => c.Id == currentUser.CompanyId).ToListAsync();
+                ViewBag.Companies = await _context.Company.Where(c => c.Id == currentUser.CompanyId && c.Status == true).ToListAsync();
             }
 
             return View(users);
@@ -133,7 +133,7 @@ namespace QualityDocc.MVC.Controllers
             }
 
             user.PasswordHash = plainPassword;
-            user.IsDeleted = false;
+            // Status = true por defecto (heredado de BaseEntity)
 
             _context.User.Add(user);
             await _context.SaveChangesAsync();
@@ -220,7 +220,8 @@ namespace QualityDocc.MVC.Controllers
                 return Forbid();
             }
 
-            userToDelete.IsDeleted = true; // Soft Delete
+            userToDelete.Status = false;        // Soft Delete: Status=false → Eliminado/Inactivo
+            userToDelete.DateDelete = DateTime.Now;
             _context.User.Update(userToDelete);
             await _context.SaveChangesAsync();
 
@@ -242,11 +243,11 @@ namespace QualityDocc.MVC.Controllers
 
             if (currentUser.CompanyId == null)
             {
-                ViewBag.Companies = await _context.Company.ToListAsync();
+                ViewBag.Companies = await _context.Company.Where(c => c.Status == true).ToListAsync();
             }
             else
             {
-                ViewBag.Companies = await _context.Company.Where(c => c.Id == currentUser.CompanyId).ToListAsync();
+                ViewBag.Companies = await _context.Company.Where(c => c.Id == currentUser.CompanyId && c.Status == true).ToListAsync();
             }
 
             return View(isos);
@@ -344,7 +345,7 @@ namespace QualityDocc.MVC.Controllers
         public async Task<IActionResult> Companies()
         {
             var companies = await _context.Company
-                .Where(c => c.IsDeleted == false)
+                .Where(c => c.Status == true) // Solo empresas activas/vigentes
                 .ToListAsync();
 
             return View(companies);
@@ -362,9 +363,8 @@ namespace QualityDocc.MVC.Controllers
                 return RedirectToAction(nameof(Companies));
             }
 
-            company.IsDeleted = false;
+            // Status = true por defecto (heredado de BaseEntity)
             company.DateCreate = DateTime.Now;
-            company.Status = true;
 
             _context.Company.Add(company);
             await _context.SaveChangesAsync();
@@ -407,8 +407,8 @@ namespace QualityDocc.MVC.Controllers
             var company = await _context.Company.FindAsync(id);
             if (company == null) return NotFound();
 
-            // Soft delete
-            company.IsDeleted = true;
+            // Soft delete: Status=false → Empresa eliminada/inactiva
+            company.Status = false;
             company.DateDelete = DateTime.Now;
 
             _context.Company.Update(company);

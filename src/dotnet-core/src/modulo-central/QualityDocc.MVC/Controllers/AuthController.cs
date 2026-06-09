@@ -37,8 +37,8 @@ namespace QualityDocc.MVC.Controllers
                         .Include(u => u.Company)
                         .FirstOrDefaultAsync(u => u.Email == email);
 
-            // 2. Validación de Empresa Desactivada (Soft Deleted)
-            if (user != null && user.Company != null && user.Company.IsDeleted == true)
+            // 2. Validación de Empresa Desactivada (Status=false = eliminada/inactiva)
+            if (user != null && user.Company != null && user.Company.Status == false)
             {
                 ModelState.AddModelError(string.Empty, "La empresa asociada a esta cuenta ha sido desactivada.");
                 return View();

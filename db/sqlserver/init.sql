@@ -7,14 +7,13 @@ GO
 CREATE TABLE Company (
     Id INT PRIMARY KEY IDENTITY(1,1),
     Name VARCHAR(100) NOT NULL,
-    IsDeleted BIT DEFAULT 0,
     DateCreate DATETIME NULL DEFAULT GETDATE(),
     DateUpdate DATETIME NULL,
     DateDelete DATETIME NULL,
     IdUserCreate INT NULL,
     IdUserUpdate INT NULL,
     IdUserDelete INT NULL,
-    Status BIT NOT NULL DEFAULT 1
+    Status BIT NOT NULL DEFAULT 1  -- 1 = Activa/Vigente | 0 = Eliminada/Inactiva
 );
 
 -- 1. Tablas de Catálogo
@@ -50,7 +49,6 @@ CREATE TABLE [User] (
     PasswordHash VARCHAR(MAX) NOT NULL,
     RoleId INT FOREIGN KEY REFERENCES Role(Id),
     CompanyId INT NULL FOREIGN KEY REFERENCES Company(Id),
-    IsDeleted BIT DEFAULT 0,
     Email VARCHAR(100) NOT NULL,
     DateCreate DATETIME NULL DEFAULT GETDATE(),
     DateUpdate DATETIME NULL,
@@ -58,7 +56,7 @@ CREATE TABLE [User] (
     IdUserCreate INT NULL,
     IdUserUpdate INT NULL,
     IdUserDelete INT NULL,
-    Status BIT NOT NULL DEFAULT 1
+    Status BIT NOT NULL DEFAULT 1  -- 1 = Activo/Vigente | 0 = Eliminado/Inactivo
 );
 
 -- 3. Documentos
@@ -78,7 +76,7 @@ CREATE TABLE Document (
     IdUserCreate INT NULL,
     IdUserUpdate INT NULL,
     IdUserDelete INT NULL,
-    Status BIT NOT NULL DEFAULT 1 -- Heredado de BaseEntity para el soft-delete o activo
+    Status BIT NOT NULL DEFAULT 1  -- 1 = Activo/Vigente | 0 = Eliminado/Inactivo
 );
 
 CREATE TABLE DocumentVersion (

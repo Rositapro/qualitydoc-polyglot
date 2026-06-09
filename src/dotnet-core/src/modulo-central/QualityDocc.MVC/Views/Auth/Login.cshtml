@@ -309,9 +309,6 @@
 <body>
     <header class="site-header">
         <h1 class="logo-text">QualityDoc</h1>
-        <div class="auth-buttons">
-            <button class="btn btn-outline-luxe rounded-pill px-4 py-2" id="login-nav-btn">Iniciar Sesión</button>
-        </div>
     </header>
 
     <div class="page-content">
@@ -375,7 +372,6 @@
     <script>
             document.addEventListener('DOMContentLoaded', function() {
                 const loginOverlay = document.getElementById('login-overlay');
-                const openLoginNavBtn = document.getElementById('login-nav-btn');
                 const openAccessBtn = document.getElementById('access-btn');
                 const closeLoginBtn = document.getElementById('close-login-btn');
                 const body = document.body;
@@ -412,7 +408,6 @@
                     body.classList.remove('login-open');
                 }
 
-                if (openLoginNavBtn) openLoginNavBtn.addEventListener('click', openLogin);
                 if (openAccessBtn) openAccessBtn.addEventListener('click', openLogin);
                 if (closeLoginBtn) closeLoginBtn.addEventListener('click', closeLogin);
 

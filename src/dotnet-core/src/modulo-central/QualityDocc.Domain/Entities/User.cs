@@ -10,7 +10,7 @@ namespace QualityDocc.Domain.Entities
 
         public string Username { get; set; } = string.Empty;
         public string PasswordHash { get; set; } = string.Empty;
-        public bool IsDeleted { get; set; } = false;
+        // Status (heredado de BaseEntity): true = Activo/Vigente | false = Eliminado/Inactivo
 
         // Relación con Role
         public int RoleId { get; set; }

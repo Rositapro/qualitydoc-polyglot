@@ -7,6 +7,6 @@ namespace QualityDocc.Domain.Entities
     public class Company : BaseEntity
     {
         public string Name { get; set; } = string.Empty;
-        public bool IsDeleted { get; set; } = false;
+        // Status (heredado de BaseEntity): true = Activa/Vigente | false = Eliminada/Inactiva
     }
 }
