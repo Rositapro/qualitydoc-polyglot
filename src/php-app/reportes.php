@@ -234,6 +234,10 @@ try {
         }
     }
 
+    if (!empty($filtro_accion)) {
+        $params_details['accion'] = $filtro_accion;
+    }
+
     // 1. Contar total de registros para paginación
     $sql_count_logs = "
         SELECT COUNT(*) as total
