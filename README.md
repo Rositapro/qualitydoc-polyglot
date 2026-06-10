@@ -1,97 +1,451 @@
-# QualityDoc-Polyglot - Sistema Integral de Gestión de Documentos de Calidad
+# 📄 QualityDoc-Polyglot
 
-Este proyecto representa la culminación integradora de las materias de **Taller de Base de Datos**, **Desarrollo de Aplicaciones Web** y **Administración de Tecnologías de Virtualización (Contenedores)**. Es una plataforma multi-stack y multi-empresa para la trazabilidad y control del ciclo de vida de documentos de calidad (bajo normativas ISO/ANSI).
+> **Sistema Integral de Gestión de Documentos de Calidad**  
+> Proyecto integrador — Taller de BD · Desarrollo Web · Administración de Contenedores  
+> Instituto Tecnológico Superior de Monclova · 6to Semestre
 
 ---
 
-## 1. Arquitectura Técnica (Polyglot Stack)
+## 📋 Tabla de Contenidos
 
-El sistema está diseñado bajo una arquitectura de microservicios y bases de datos políglotas (SQL y NoSQL) orquestadas mediante Docker:
+1. [¿Qué es este proyecto?](#-qué-es-este-proyecto)
+2. [Arquitectura del Sistema](#-arquitectura-del-sistema)
+3. [Tecnologías Utilizadas](#-tecnologías-utilizadas)
+4. [Requisitos Previos](#-requisitos-previos)
+5. [Instalación Rápida](#-instalación-rápida)
+6. [Instalación Manual](#-instalación-manual)
+7. [Acceso y Credenciales](#-acceso-y-credenciales)
+8. [Módulos del Sistema](#-módulos-del-sistema)
+9. [Flujo de Versiones de Documentos](#-flujo-de-versiones-de-documentos)
+10. [Roles de Usuario](#-roles-de-usuario)
+11. [Estructura del Repositorio](#-estructura-del-repositorio)
+12. [Base de Datos](#-base-de-datos)
+13. [API Endpoints](#-api-endpoints)
+14. [Comandos Útiles](#-comandos-útiles)
 
-1. **Módulo Central (Admin):** Desarrollado en **.NET Core 10 MVC (C#)** y persistido en **SQL Server**. Gestiona la lógica pesada de aprobaciones de documentos y flujos de revisión.
-2. **Módulo de Consulta Pública:** Desarrollado en **PHP 8** y persistido en **PostgreSQL**. Permite a los operarios en planta consultar documentos vigentes y registra logs de auditoría.
-3. **Módulo de Indexación y Búsqueda (Búsqueda Inteligente):** Desarrollado en **Node.js (TypeScript / Express)** y persistido en **MongoDB**. Permite búsquedas rápidas con índices de texto completo sobre metadatos dinámicos.
+---
 
-```mermaid
-graph TD
-    User([Operario / Admin]) -->|Puerto 8080| PHP[web-php: PHP 8]
-    User -->|Puerto 3000| Node[search-service: Node.js/TS]
-    
-    subgraph Red Docker (qualitydoc-net)
-        PHP -->|Logs de Consulta| Postgres[(db-postgres: PostgreSQL 16)]
-        Node -->|Indexación y Búsqueda| Mongo[(db-mongodb: MongoDB)]
-        
-        %% Módulo de .NET y SQL Server comentado
-        DotNet[admin-dotnet: .NET Core 10] -.->|Aprobaciones| SQLServer[(db-sqlserver: SQL Server)]
-        DotNet -.->|Notifica indexación| Node
-    end
+## 🎯 ¿Qué es este proyecto?
+
+**QualityDoc-Polyglot** es una plataforma multi-empresa para el control del **ciclo de vida de documentos de calidad** bajo normativas como **ISO 9001** e **IATF 16949**.
+
+El sistema permite que las empresas gestionen sus documentos internos (procedimientos, manuales, registros) a través de un flujo de trabajo con tres roles: **Autor → Revisor → Autorizador**, con control de versiones automático.
+
+Es un proyecto **polyglot** (multilenguaje y multi-base de datos) que integra tres stacks tecnológicos distintos en un solo entorno Docker.
+
+---
+
+## 🏗️ Arquitectura del Sistema
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    USUARIO / NAVEGADOR                   │
+└──────────┬────────────────┬────────────────┬────────────┘
+           │                │                │
+     Puerto 5000      Puerto 8080      Puerto 3000
+           │                │                │
+  ┌────────▼───────┐ ┌──────▼──────┐ ┌──────▼──────────┐
+  │  Portal Admin  │ │ Portal PHP  │ │ SmartSearch     │
+  │  .NET Core 10  │ │   PHP 8     │ │ Node.js + TS    │
+  │   (C# MVC)     │ │             │ │ (Express)       │
+  └────────┬───────┘ └──────┬──────┘ └──────┬──────────┘
+           │                │                │
+    ┌──────▼──────┐  ┌──────▼──────┐  ┌─────▼───────┐
+    │  SQL Server │  │ PostgreSQL  │  │   MongoDB   │
+    │  (Puerto    │  │  (Puerto    │  │  (Puerto    │
+    │   1433)     │  │   5432)     │  │   27017)    │
+    └─────────────┘  └─────────────┘  └─────────────┘
+```
+
+### Red interna Docker: `qualitydoc-net`
+
+Todos los servicios se comunican entre sí dentro de la red privada de Docker. Solo los puertos necesarios están expuestos al host.
+
+---
+
+## 🛠️ Tecnologías Utilizadas
+
+| Capa | Tecnología | Versión | Propósito |
+|------|-----------|---------|-----------|
+| **Backend Admin** | .NET Core MVC (C#) | 10.0 | Gestión de flujo documental |
+| **Backend Público** | PHP | 8.x | Portal de consulta pública |
+| **Backend Búsqueda** | Node.js + TypeScript | 20 LTS | Indexación y búsqueda full-text |
+| **BD Principal** | SQL Server | 2022 | Documentos, usuarios, flujo de trabajo |
+| **BD Pública** | PostgreSQL | 16 | Documentos vigentes, logs de consulta |
+| **BD Búsqueda** | MongoDB | 7 | Índice de texto completo (full-text search) |
+| **Contenedores** | Docker + Docker Compose | Latest | Orquestación de servicios |
+| **Frontend** | Bootstrap 5 + Bootstrap Icons | 5.3 | UI responsiva |
+
+---
+
+## ✅ Requisitos Previos
+
+Solo necesitas **una** cosa instalada:
+
+- **[Docker Desktop](https://www.docker.com/products/docker-desktop/)** — incluye Docker Engine y Docker Compose.
+
+> ⚠️ Asegúrate de que Docker Desktop esté **abierto y corriendo** antes de instalar.
+
+---
+
+## 🚀 Instalación Rápida
+
+### En Windows:
+```
+1. Clona o descarga el repositorio
+2. Abre la carpeta del proyecto
+3. Haz doble clic en:  install.bat
+4. Espera a que termine (~3-5 minutos)
+5. Abre tu navegador en:  http://localhost:5000
+```
+
+### En Linux / macOS:
+```bash
+git clone https://github.com/Rositapro/qualitydoc-polyglot.git
+cd qualitydoc-polyglot
+chmod +x install.sh
+./install.sh
+```
+
+### Para detener el sistema:
+- **Windows:** doble clic en `stop.bat`
+- **Linux/Mac:** `./stop.sh`
+
+---
+
+## 🔧 Instalación Manual
+
+Si prefieres hacerlo paso a paso desde la terminal:
+
+```bash
+# 1. Clona el repositorio
+git clone https://github.com/Rositapro/qualitydoc-polyglot.git
+cd qualitydoc-polyglot
+
+# 2. Entra a la carpeta de Docker
+cd docker
+
+# 3. Construye y levanta todos los contenedores
+docker-compose up -d --build
+
+# 4. Verifica que todos los contenedores estén corriendo
+docker-compose ps
 ```
 
 ---
 
-## 2. Requisitos Previos
+## 🔑 Acceso y Credenciales
 
-* [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado y en ejecución en tu computadora.
+### Portal Principal — .NET (Administración)
+| URL | http://localhost:5000 |
+|-----|----------------------|
 
----
+**Usuarios de prueba:**
 
-## 3. Instrucciones de Instalación y Despliegue
-
-Sigue estos pasos para levantar todo el entorno unificado (Bases de datos y aplicaciones):
-
-1. Abre una terminal y colócate en la carpeta `docker` del repositorio:
-   ```bash
-   cd docker
-   ```
-2. Ejecuta el comando de Docker Compose para compilar e iniciar todos los contenedores en segundo plano:
-   ```bash
-   docker-compose up -d --build
-   ```
-3. Docker descargará las imágenes oficiales, compilará el código de Node y PHP local, inicializará las bases de datos con sus respectivos esquemas y cargará los datos semilla de prueba automáticamente.
+| Rol | Correo | Contraseña |
+|-----|--------|------------|
+| Administrador | `admin@empresa.com` | `Admin123!` |
+| Autor | `autor1@empresa.com` | `Autor123!` |
+| Revisor | `revisor1@empresa.com` | `Revisor123!` |
+| Autorizador | `autorizador1@empresa.com` | `Auth123!` |
 
 ---
 
-## 4. Direcciones de Acceso y Credenciales por Defecto
+### Portal Público — PHP (Consulta de Documentos)
+| URL | http://localhost:8080 |
+|-----|----------------------|
 
-### Portales Web:
-* **Buscador de Calidad (Node.js/MongoDB):** [http://localhost:3000](http://localhost:3000)
-  * *Credenciales (Simulación):* Puedes iniciar sesión con cualquier correo y contraseña no vacíos.
-  * *Aislamiento por Empresa:*
-    * Para entrar como **Empresa 1** y ver sus documentos exclusivos, inicia sesión con un correo que no contenga el número 2 (ej: `admin@empresa1.com`).
-    * Para entrar como **Empresa 2**, usa un correo que contenga el número 2 (ej: `admin@empresa2.com`).
-* **Consulta de Documentos (PHP/PostgreSQL):** [http://localhost:8080](http://localhost:8080)
-  * *Credenciales:* `usuarioConsulta` / `Rosa123`
-
-### Bases de Datos:
-* **PostgreSQL:**
-  * *Host:* `localhost` (dentro de Docker: `db-postgres`)
-  * *Puerto:* `5432`
-  * *Usuario:* `Rosalinda`
-  * *Contraseña:* `Rosa123`
-  * *Base de Datos:* `gestionconsulta`
-* **MongoDB:**
-  * *Host:* `localhost` (dentro de Docker: `db-mongodb`)
-  * *Puerto:* `27017`
-  * *Base de Datos:* `qualitydoc`
+| Usuario | Contraseña |
+|---------|------------|
+| `usuarioConsulta` | `Rosa123` |
 
 ---
 
-## 5. Inicialización y Datos Semilla
+### Servicio de Búsqueda — Node.js
+| URL | http://localhost:3000 |
+|-----|----------------------|
 
-Al levantar los contenedores por primera vez, se ejecutan de manera automática los siguientes scripts de la carpeta `/db`:
-* **`db/postgres/init.sql`:** Crea las tablas `DocumentosVigentes` y `LogsConsultas` y carga dos registros iniciales de ejemplo.
-* **`db/mongodb/init-mongo.js`:** Genera un índice de texto compuesto (`DocumentTextIndex`) en los campos de título, etiquetas y contenido de texto de Mongoose con diferentes pesos, e inserta 4 documentos semilla segmentados entre la Empresa 1 y la Empresa 2.
+> La búsqueda inteligente también está integrada en el portal .NET en `/SmartSearch`.
 
 ---
 
-## 6. Guía de Integración para Odeth (.NET Core & SQL Server)
+### Bases de Datos (conexión directa)
 
-Para integrar tu módulo en el repositorio unificado, sigue estos pasos:
+| Base de Datos | Host | Puerto | Usuario | Contraseña | BD |
+|--------------|------|--------|---------|------------|----|
+| SQL Server | localhost | 1433 | `sa` | `YourStrong@Passw0rd` | `QualityDocDB` |
+| PostgreSQL | localhost | 5432 | `Rosalinda` | `Rosa123` | `gestionconsulta` |
+| MongoDB | localhost | 27017 | _(sin auth)_ | — | `qualitydoc` |
 
-1. Coloca los archivos de tu proyecto de **.NET Core 10** dentro de la carpeta:
-   `src/dotnet-core/`
-2. Guarda el script de creación de tu base de datos de **SQL Server** en:
-   `db/sqlserver/init.sql`
-3. Abre el archivo `/docker/docker-compose.yml` y descomenta las secciones correspondientes a los servicios `db-sqlserver` y `admin-dotnet`, así como el volumen `mssql_data` al final del archivo.
-4. Asegúrate de configurar la cadena de conexión de tu aplicación de .NET apuntando al servidor `db-sqlserver` en el puerto `1433`.
-5. Ejecuta `docker-compose up -d --build` para compilar y probar la integración completa.
+---
+
+## 📦 Módulos del Sistema
+
+### 1. 🏢 Portal de Administración (.NET Core)
+
+El módulo central del sistema. Gestiona el flujo completo de documentos.
+
+**Funcionalidades:**
+- ✅ Registro e inicio de sesión con roles
+- ✅ Creación de documentos con carga de archivos PDF
+- ✅ Flujo de trabajo: Autor → Revisor → Autorizador
+- ✅ Sistema de rechazo con notas/comentarios
+- ✅ Control de versiones automático
+- ✅ Historial de versiones obsoletas (desplegable por documento)
+- ✅ Búsqueda inteligente en MongoDB (SmartSearch)
+- ✅ Panel de administración (gestión de usuarios, empresas, normas ISO)
+- ✅ Descarga de documentos PDF
+- ✅ Gestión multi-empresa (cada empresa solo ve sus documentos)
+
+**Controladores principales:**
+
+| Controlador | Responsabilidad |
+|------------|----------------|
+| `AuthController` | Login / Logout |
+| `AuthorController` | Crear y editar documentos, enviar a revisión |
+| `ReviewerController` | Revisar documentos, aprobar o rechazar |
+| `ApproverController` | Autorizar documentos, activar versión vigente |
+| `AdminController` | Gestión de usuarios, empresas, catálogos ISO |
+| `SmartSearchController` | Búsqueda full-text en MongoDB |
+
+---
+
+### 2. 🌐 Portal Público (PHP + PostgreSQL)
+
+Portal de solo lectura para operarios y personal de planta.
+
+**Funcionalidades:**
+- ✅ Inicio de sesión con credenciales de consulta
+- ✅ Listado de documentos vigentes agrupados por código
+- ✅ Historial de versiones obsoletas (pestaña desplegable)
+- ✅ Descarga de documentos PDF vigentes
+- ✅ Registro automático de logs de consulta (quién consultó qué y cuándo)
+- ✅ Reportes de auditoría
+
+---
+
+### 3. 🔍 Búsqueda Inteligente (Node.js + MongoDB)
+
+Motor de búsqueda full-text integrado en el portal .NET.
+
+**Funcionalidades:**
+- ✅ Indexación automática del contenido completo de los PDFs
+- ✅ Búsqueda por título, contenido, autor, norma ISO
+- ✅ Fallback con búsqueda por expresiones regulares (Regex)
+- ✅ Historial de versiones obsoletas por documento
+- ✅ Separación por empresa (cada empresa solo busca en sus documentos)
+- ✅ Vista previa del texto extraído del PDF
+
+---
+
+## 🔄 Flujo de Versiones de Documentos
+
+El sistema aplica versionado automático siguiendo esta lógica:
+
+```
+AUTOR crea documento
+        │
+        ▼
+   Versión: 0.1  ──── Envía a revisión
+        │
+   REVISOR revisa
+        ├── Rechaza ──► AUTOR corrige ──► Versión: 0.2 ──► Revisor de nuevo ──► 0.3...
+        │
+        └── Aprueba ──► AUTORIZADOR revisa
+                             ├── Rechaza ──► vuelve al autor (sigue siendo 0.x)
+                             │
+                             └── Autoriza ──► Versión: 1.0 ✅ (VIGENTE)
+                                                │
+                                           AUTOR edita
+                                                │
+                                           Versión: 1.1 ──► Revisor ──► Autorizador
+                                                                              │
+                                                                         Autoriza ──► 2.0 ✅
+```
+
+**Regla matemática de versiones:**
+- Durante revisión: `X.1`, `X.2`, `X.3`... (incremento decimal)
+- Al autorizar: `Math.Floor(versión_actual) + 1.0` → número entero nuevo
+
+---
+
+## 👥 Roles de Usuario
+
+| Rol | Permisos |
+|-----|---------|
+| **Administrador** | Gestiona usuarios, empresas, normas ISO. Ve todos los documentos. |
+| **Autor** | Crea documentos, los edita y los envía a revisión. |
+| **Revisor** | Revisa documentos del Autor. Puede aprobar (enviar al autorizador) o rechazar (devolver al autor). |
+| **Autorizador** | Aprueba o rechaza documentos revisados. Al aprobar, activa la nueva versión vigente. |
+| **Consulta (PHP)** | Solo puede ver y descargar documentos vigentes. No puede modificar nada. |
+
+---
+
+## 📁 Estructura del Repositorio
+
+```
+QualityDoc-Polyglot/
+│
+├── 📄 install.bat          ← Script de instalación (Windows)
+├── 📄 install.sh           ← Script de instalación (Linux/macOS)
+├── 📄 stop.bat             ← Detener servicios (Windows)
+├── 📄 stop.sh              ← Detener servicios (Linux/macOS)
+├── 📄 README.md            ← Este archivo
+│
+├── 🐳 docker/
+│   ├── docker-compose.yml  ← Orquestación de todos los servicios
+│   ├── node.Dockerfile     ← Imagen del servicio Node.js
+│   └── php.Dockerfile      ← Imagen del servicio PHP
+│
+├── 🗄️ db/
+│   ├── postgres/
+│   │   └── init.sql        ← Esquema y datos iniciales de PostgreSQL
+│   ├── sqlserver/
+│   │   └── init.sql        ← Esquema y datos iniciales de SQL Server
+│   └── mongodb/
+│       └── init-mongo.js   ← Índices y datos semilla de MongoDB
+│
+└── 💻 src/
+    ├── dotnet-core/        ← Portal de Administración (.NET Core 10)
+    │   └── src/modulo-central/
+    │       ├── QualityDocc.Domain/        ← Entidades y modelos
+    │       ├── QualityDocc.Application/   ← Interfaces y lógica de negocio
+    │       ├── QualityDocc.Infrastructure/← Repositorios y servicios externos
+    │       ├── QualityDocc.MVC/           ← Controladores, vistas, configuración
+    │       └── QualityDocc.Tests/         ← Pruebas unitarias (13 tests ✅)
+    │
+    ├── php-app/            ← Portal Público (PHP 8)
+    │   ├── index.php
+    │   ├── login.php
+    │   ├── documentos.php  ← Lista documentos vigentes + historial
+    │   └── reportes.php    ← Logs de auditoría
+    │
+    └── node-service/       ← Servicio de Búsqueda (Node.js + TypeScript)
+        └── src/
+            ├── controllers/
+            │   └── document.controller.ts
+            └── app.ts
+```
+
+---
+
+## 🗄️ Base de Datos
+
+### SQL Server — Tablas principales
+
+| Tabla | Descripción |
+|-------|------------|
+| `User` | Usuarios del sistema con roles y empresa |
+| `Role` | Roles: Admin, Author, Reviewer, Approver |
+| `Company` | Empresas registradas (multi-tenant) |
+| `Document` | Documentos con estado de flujo de trabajo |
+| `DocumentVersion` | Versiones de cada documento (historial completo) |
+| `Iso` | Normas ISO disponibles (ISO 9001, IATF 16949, etc.) |
+
+### PostgreSQL — Tablas principales
+
+| Tabla | Descripción |
+|-------|------------|
+| `DocumentosVigentes` | Copia de documentos en estado Vigente para consulta |
+| `LogsConsultas` | Registro de quién descargó qué documento y cuándo |
+
+### MongoDB — Colección `documents`
+
+```json
+{
+  "title": "Manual de Calidad",
+  "fileExtension": "pdf",
+  "body": "...texto completo extraído del PDF...",
+  "empresaid": 1001,
+  "status": "Vigente",   // o "Obsoleto"
+  "metadata": {
+    "author": "autor1",
+    "version": "2.0",
+    "iso": "ISO 9001",
+    "documentId": 5,
+    "versionId": 12
+  },
+  "tags": ["document", "ISO 9001"]
+}
+```
+
+---
+
+## 🌐 API Endpoints
+
+### Node.js (Puerto 3000)
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `POST` | `/api/login` | Autenticación de usuario |
+| `GET` | `/api/search?q=texto&empresaId=1` | Búsqueda full-text |
+
+### .NET (Puerto 5000) — Rutas principales
+
+| Ruta | Descripción |
+|------|------------|
+| `/Auth/Login` | Inicio de sesión |
+| `/Author/Index` | Panel del Autor |
+| `/Author/Create` | Crear nuevo documento |
+| `/Author/Search` | Buscar documentos propios |
+| `/Reviewer/Index` | Panel del Revisor |
+| `/Approver/Index` | Panel del Autorizador |
+| `/Admin/Index` | Panel de Administración |
+| `/SmartSearch` | Búsqueda inteligente en MongoDB |
+
+---
+
+## 🧪 Pruebas
+
+El proyecto incluye **13 pruebas unitarias** que se ejecutan automáticamente al construir el contenedor Docker:
+
+```
+Passed!  - Failed: 0, Passed: 13, Skipped: 0, Total: 13
+```
+
+Para ejecutar las pruebas manualmente:
+
+```bash
+docker exec admin-dotnet dotnet test
+```
+
+---
+
+## ⚙️ Comandos Útiles
+
+```bash
+# Ver estado de todos los contenedores
+docker-compose ps
+
+# Ver logs de un servicio específico
+docker logs admin-dotnet
+docker logs web-php
+docker logs search-service
+docker logs db-sqlserver
+docker logs db-postgres
+docker logs db-mongodb
+
+# Reconstruir un solo servicio
+docker-compose up -d --build admin-dotnet
+
+# Detener sin borrar datos
+docker-compose stop
+
+# Detener y eliminar contenedores (mantiene volúmenes/datos)
+docker-compose down
+
+# Eliminar TODO incluyendo datos (reset completo)
+docker-compose down -v
+```
+
+---
+
+## 👩‍💻 Autora
+
+**Rosalinda** — Instituto Tecnológico Superior de Monclova  
+6to Semestre · Ingeniería en Sistemas Computacionales  
+Proyecto Integrador — 2026
+
+---
+
+> 💡 **Nota:** Este proyecto fue desarrollado como proyecto integrador académico. El sistema implementa conceptos de arquitectura polyglot, microservicios, contenedores Docker, control de versiones y gestión documental basada en normativas ISO.
