@@ -440,10 +440,10 @@ docker-compose down -v
 
 ---
 
-## 👩‍💻 Autora
+## 👩‍💻 Autoras
 
-**Rosalinda** — Instituto Tecnológico Superior de Monclova  
-6to Semestre · Ingeniería en Sistemas Computacionales  
+**Odeth Peña y Rosalinda Cedillo** — Instituto Tecnológico Superior de Monclova  
+6to Semestre · Ingeniería informatica
 Proyecto Integrador — 2026
 
 ---
