@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Búsqueda Inteligente";
+    var obsMapGlobal = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, List<string>>>(ViewBag.ObsoleteVersionsJson as string ?? "{}") ?? new Dictionary<string, List<string>>();
 }
 
 <div class="container mt-4">
@@ -31,7 +32,9 @@
     @if (Model != null && Model.Any())
     {
         <h5 class="mb-3 text-muted">Resultados encontrados (@Model.Count())</h5>
-        
+
+
+
         <div class="row g-4" id="smart-search-results">
             @foreach (var doc in Model)
             {
@@ -43,9 +46,20 @@
                 var version = metadata?["version"]?.ToString() ?? "1.0";
                 var iso = metadata?["iso"]?.ToString() ?? "ISO General";
                 var docId = metadata?["documentId"]?.ToString();
-                
+
                 // Truncar el cuerpo a unos 250 caracteres para la vista previa
                 var snippet = body.Length > 250 ? body.Substring(0, 250) + "..." : body;
+
+                // Leer versiones obsoletas desde el mapa global
+                var docIdStr = metadata?["documentId"]?.ToString() ?? "0";
+                var obsoleteJsonList = obsMapGlobal.ContainsKey(docIdStr) ? obsMapGlobal[docIdStr] : new List<string>();
+                var obsoleteVersions = new List<System.Text.Json.Nodes.JsonNode>();
+                foreach (var oj in obsoleteJsonList)
+                {
+                    try { var n = System.Text.Json.Nodes.JsonNode.Parse(oj); if (n != null) obsoleteVersions.Add(n); } catch { }
+                }
+                int currentDocId = 0;
+                int.TryParse(docIdStr, out currentDocId);
 
                 <div class="col-12 search-result-item">
                     <div class="card shadow-sm border-0 p-4 h-100" style="border-radius: 12px; border-left: 5px solid #9b9564 !important; transition: transform 0.2s;">
@@ -70,7 +84,39 @@
                             </p>
                         </div>
 
-                        <div class="d-flex justify-content-end gap-2">
+                        <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
+                            <div>
+                                @if (obsoleteVersions.Count > 0)
+                                {
+                                    <button class="btn btn-sm btn-link p-0 text-decoration-none d-flex align-items-center gap-1"
+                                            type="button"
+                                            data-bs-toggle="collapse"
+                                            data-bs-target="#obs-versions-@currentDocId"
+                                            aria-expanded="false"
+                                            style="font-size: 0.8rem; color: #805ad5;">
+                                        <i class="bi bi-clock-history"></i>
+                                        Ver versiones anteriores (@obsoleteVersions.Count)
+                                    </button>
+                                    <div class="collapse mt-2" id="obs-versions-@currentDocId">
+                                        <ul class="list-group list-group-flush border rounded-3 p-2 shadow-sm" style="font-size: 0.85rem; background-color: #faf8f5; max-width: 380px;">
+                                            @foreach (var obsDoc in obsoleteVersions)
+                                            {
+                                                var obsVersion = obsDoc["metadata"]?["version"]?.ToString() ?? "?";
+                                                <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center py-2 px-1 border-light">
+                                                    <span class="fw-bold text-dark">v@(obsVersion)</span>
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <span class="badge py-1 px-2" style="background-color: #6c757d; font-size: 0.75rem;">Obsoleto</span>
+                                                        <span class="text-muted" title="Versiones obsoletas no se pueden descargar (Solo Auditoría)">
+                                                            <i class="bi bi-lock-fill" style="font-size: 0.8rem;"></i>
+                                                        </span>
+                                                    </div>
+                                                </li>
+                                            }
+                                        </ul>
+                                    </div>
+                                }
+                            </div>
+
                             @if (!string.IsNullOrEmpty(docId))
                             {
                                 <a href="/Home/Index" class="btn btn-sm text-white px-3" style="background-color: #9b9564;">

@@ -5,6 +5,7 @@ using QualityDocc.Application.Interfaces;
 using QualityDocc.Infrastructure.Data;
 using System.Collections.Generic;
 using System.Security.Claims;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 
@@ -34,6 +35,8 @@ namespace QualityDocc.MVC.Controllers
 
             var rawResults = await _mongoService.SearchDocumentsAsync(q, currentUser.CompanyId ?? 1);
             var parsedDocuments = new List<JsonNode>();
+            // Diccionario: documentId => lista de versiones obsoletas (JSON)
+            var obsoleteMap = new Dictionary<int, List<JsonNode>>();
 
             foreach (var json in rawResults)
             {
@@ -43,6 +46,20 @@ namespace QualityDocc.MVC.Controllers
                     if (node != null)
                     {
                         parsedDocuments.Add(node);
+
+                        // Para cada documento vigente, obtener su historial obsoleto
+                        var docIdNode = node["metadata"]?["documentId"];
+                        if (docIdNode != null && int.TryParse(docIdNode.ToString(), out int docId))
+                        {
+                            var obsoleteRaw = await _mongoService.GetObsoleteVersionsAsync(docId, currentUser.CompanyId ?? 1);
+                            var obsoleteNodes = new List<JsonNode>();
+                            foreach (var obsJson in obsoleteRaw)
+                            {
+                                try { var obsNode = JsonNode.Parse(obsJson); if (obsNode != null) obsoleteNodes.Add(obsNode); }
+                                catch { }
+                            }
+                            obsoleteMap[docId] = obsoleteNodes;
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -51,6 +68,17 @@ namespace QualityDocc.MVC.Controllers
                 }
             }
 
+            // Serializar como JSON simple: { "docId": [{...}, ...], ... }
+            // Usamos string como clave para que la serialización sea válida
+            var obsoleteMapStr = new Dictionary<string, List<string>>();
+            foreach (var kv in obsoleteMap)
+            {
+                var jsonList = new List<string>();
+                foreach (var node in kv.Value)
+                    jsonList.Add(node.ToJsonString());
+                obsoleteMapStr[kv.Key.ToString()] = jsonList;
+            }
+            ViewBag.ObsoleteVersionsJson = JsonSerializer.Serialize(obsoleteMapStr);
             return View(parsedDocuments);
         }
     }

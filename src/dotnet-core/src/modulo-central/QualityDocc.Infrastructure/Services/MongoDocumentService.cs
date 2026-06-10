@@ -152,5 +152,33 @@ namespace QualityDocc.Infrastructure.Services
 
             return results;
         }
+
+        public async Task<List<string>> GetObsoleteVersionsAsync(int documentId, int companyId)
+        {
+            var results = new List<string>();
+            try
+            {
+                var filter = Builders<BsonDocument>.Filter.And(
+                    Builders<BsonDocument>.Filter.Eq("empresaid", companyId),
+                    Builders<BsonDocument>.Filter.Eq("metadata.documentId", documentId),
+                    Builders<BsonDocument>.Filter.Eq("status", "Obsoleto")
+                );
+
+                var matches = await _collection.Find(filter)
+                    .Sort(Builders<BsonDocument>.Sort.Descending("metadata.version"))
+                    .ToListAsync();
+
+                foreach (var doc in matches)
+                {
+                    results.Add(doc.ToJson(new MongoDB.Bson.IO.JsonWriterSettings { OutputMode = MongoDB.Bson.IO.JsonOutputMode.RelaxedExtendedJson }));
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"GetObsoleteVersionsAsync EXCEPTION: {ex.Message}");
+            }
+
+            return results;
+        }
     }
 }

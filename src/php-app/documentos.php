@@ -75,7 +75,7 @@ if (!empty($filtro_search)) {
 
 // 3. Consultar total de documentos que cumplen los filtros (para paginación)
 try {
-    $sql_count = "SELECT COUNT(*) AS total FROM documento WHERE empresaid = :empresa";
+    $sql_count = "SELECT COUNT(DISTINCT codigo) AS total FROM documento WHERE empresaid = :empresa";
     $params = ['empresa' => $empresa_id];
 
     if (!empty($filtro_iso)) {
@@ -127,7 +127,7 @@ $offset = ($pagina_solicitada - 1) * $limite_pag;
 
 // 5. Consultar documentos filtrados y paginados (Estricto por empresaid)
 try {
-    $sql = "SELECT * FROM documento WHERE empresaid = :empresa";
+    $sql = "SELECT DISTINCT ON (codigo) * FROM documento WHERE empresaid = :empresa";
     $params_select = ['empresa' => $empresa_id];
     
     if (!empty($filtro_iso)) {
@@ -160,7 +160,7 @@ try {
     }
 
     // Ordenar por código y versión de forma descendente para ver la última versión primero
-    $sql .= " ORDER BY codigo ASC, version DESC LIMIT :limit OFFSET :offset";
+    $sql .= " ORDER BY codigo ASC, iddocumento DESC LIMIT :limit OFFSET :offset";
     
     // Remplazar marcadores enteros en la consulta para evitar problemas de tipos en Postgres
     $sql = str_replace(':limit', (int)$limite_pag, $sql);
@@ -293,10 +293,57 @@ try {
             <tbody>
                 <?php if (count($documentos) > 0): ?>
                     <?php foreach ($documentos as $doc): ?>
+                        <?php
+                            // Consultar el historial de versiones para este documento
+                            try {
+                                $stmt_versions = $pdo->prepare("SELECT * FROM documento WHERE empresaid = :empresa AND codigo = :codigo ORDER BY iddocumento DESC");
+                                $stmt_versions->execute(['empresa' => $empresa_id, 'codigo' => $doc['codigo']]);
+                                $historial_versiones = $stmt_versions->fetchAll();
+                            } catch (PDOException $e) {
+                                $historial_versiones = [];
+                            }
+                        ?>
                         <tr>
                             <td class="font-sans text-muted">#<?php echo $doc['iddocumento']; ?></td>
                             <td>
                                 <strong><?php echo htmlspecialchars($doc['titulodocumento']); ?></strong>
+                                
+                                <!-- Collapsible Version History -->
+                                <div class="mt-1">
+                                    <button class="btn btn-sm btn-link p-0 text-decoration-none text-secondary d-flex align-items-center gap-1" type="button" data-bs-toggle="collapse" data-bs-target="#versions-<?php echo $doc['iddocumento']; ?>" aria-expanded="false" aria-controls="versions-<?php echo $doc['iddocumento']; ?>" style="font-size: 0.8rem; color: #805ad5 !important;">
+                                        <i class="bi bi-clock-history"></i> Ver Historial de Versiones (<?php echo count($historial_versiones); ?>)
+                                    </button>
+                                    <div class="collapse mt-2" id="versions-<?php echo $doc['iddocumento']; ?>">
+                                        <ul class="list-group list-group-flush border rounded-3 p-2 bg-light shadow-sm" style="font-size: 0.85rem; max-width: 350px;">
+                                            <?php if (count($historial_versiones) > 0): ?>
+                                                <?php foreach ($historial_versiones as $ver): ?>
+                                                    <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center py-2 px-1 border-light">
+                                                        <div>
+                                                            <span class="fw-bold text-dark">v<?php echo htmlspecialchars($ver['version']); ?></span>
+                                                        </div>
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <?php if ($ver['estado'] === 'vigente'): ?>
+                                                                <span class="badge badge-status badge-vigente py-1 px-2" style="font-size: 0.75rem;">Vigente</span>
+                                                                <?php if (!empty($ver['rutaarchivo'])): ?>
+                                                                    <a href="descargar.php?id=<?php echo $ver['iddocumento']; ?>" class="btn btn-sm btn-outline-success p-1 py-0 d-flex align-items-center justify-content-center" style="font-size: 0.75rem;" title="Descargar Versión Vigente">
+                                                                        <i class="bi bi-download"></i>
+                                                                    </a>
+                                                                <?php endif; ?>
+                                                            <?php else: ?>
+                                                                <span class="badge badge-status badge-obsoleto py-1 px-2" style="font-size: 0.75rem;">Obsoleto</span>
+                                                                <span class="text-muted" title="Las versiones obsoletas no se pueden descargar (Solo Auditoría)">
+                                                                    <i class="bi bi-lock-fill"></i>
+                                                                </span>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                    </li>
+                                                <?php endforeach; ?>
+                                            <?php else: ?>
+                                                <li class="list-group-item bg-transparent py-2 text-muted fst-italic">Sin versiones registradas.</li>
+                                            <?php endif; ?>
+                                        </ul>
+                                    </div>
+                                </div>
                             </td>
                             <td class="font-sans"><code><?php echo htmlspecialchars($doc['codigo']); ?></code></td>
                             <td class="font-sans text-center"><?php echo htmlspecialchars($doc['version']); ?></td>

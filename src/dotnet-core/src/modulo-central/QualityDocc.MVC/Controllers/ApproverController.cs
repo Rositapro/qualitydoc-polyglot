@@ -141,14 +141,8 @@ namespace QualityDocc.MVC.Controllers
 
                         if (lastVersion != null)
                         {
-                            // Si la versión es menor a 1.0 (0.1, 0.2, etc.), al aprobar pasa a ser 1.0.
-                            // Si ya es 1.0 o superior (1.1, 1.2, etc.), al aprobar mantiene su número de versión original.
-                            double currentVersion = lastVersion.VersionNumber;
-                            if (currentVersion < 1.0)
-                            {
-                                lastVersion.VersionNumber = 1.0;
-                            }
-                            // Si es >= 1.0, se queda con su número actual (ej. 1.1, 1.2, etc.)
+                            // Al aprobar, la versión se incrementa a la siguiente versión mayor entera (ej. 0.1 -> 1.0, 1.1 -> 2.0, 2.2 -> 3.0).
+                            lastVersion.VersionNumber = Math.Floor(lastVersion.VersionNumber) + 1.0;
 
                             lastVersion.Status = "Vigente";
 

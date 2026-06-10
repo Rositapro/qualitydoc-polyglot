@@ -8,5 +8,6 @@ namespace QualityDocc.Application.Interfaces
     {
         Task SaveApprovedDocumentAsync(Document doc, DocumentVersion version, string authorName, string pdfText);
         Task<List<string>> SearchDocumentsAsync(string query, int companyId);
+        Task<List<string>> GetObsoleteVersionsAsync(int documentId, int companyId);
     }
 }

@@ -59,12 +59,8 @@ namespace QualityDocc.Application.Services
                 throw new InvalidOperationException("No se encontró ninguna versión para aprobar.");
             }
 
-            // Si es menor a 1.0 (ej. 0.1, 0.2), la primera aprobación la convierte en la versión 1.0.
-            // Si ya es >= 1.0 (ej. 1.1), se mantiene (no cambia).
-            if (lastVersion.VersionNumber < 1.0)
-            {
-                lastVersion.VersionNumber = 1.0;
-            }
+            // Al aprobar, la versión se incrementa a la siguiente versión mayor entera (ej. 0.1 -> 1.0, 1.1 -> 2.0, 2.2 -> 3.0).
+            lastVersion.VersionNumber = Math.Floor(lastVersion.VersionNumber) + 1.0;
 
             lastVersion.Status = "Vigente";
             lastVersion.ChangeLog = "APROBADO: " + approvalNotes;

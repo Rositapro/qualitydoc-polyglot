@@ -33,6 +33,7 @@
                 <th>ID</th>
                 <th>Título y Versiones</th>
                 <th>Norma ISO</th>
+                <th>Versión</th>
                 <th>Estado General</th>
                 <th scope="col">Acciones</th>
             </tr>
@@ -106,6 +107,14 @@
                     </td>
 
                     <td>@(item.Iso?.Name ?? "Sin ISO")</td>
+
+                    <td>
+                        @{
+                            var latestVersion = item.Versions?.OrderByDescending(v => v.VersionNumber).FirstOrDefault();
+                            var versionStr = latestVersion != null ? latestVersion.VersionNumber.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) : "0.1";
+                        }
+                        <span class="badge" style="background-color: #4a3b32;">v@(versionStr)</span>
+                    </td>
 
                     <td>
                         @if (item.WorkflowState == QualityDocc.Domain.Entities.DocumentStatus.Aprobado)
