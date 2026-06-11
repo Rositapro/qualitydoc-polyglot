@@ -1,4 +1,4 @@
-# QualityDoc-Polyglot
+# 📄 QualityDoc-Polyglot
 
 > **Sistema Integral de Gestión de Documentos de Calidad**  
 > Proyecto integrador — Taller de BD · Desarrollo Web · Administración de Contenedores  
@@ -6,26 +6,26 @@
 
 ---
 
-## Tabla de Contenidos
+## 📋 Tabla de Contenidos
 
-1. [Descripcion del Proyecto](#descripcion-del-proyecto)
-2. [Arquitectura del Sistema](#arquitectura-del-sistema)
-3. [Tecnologias Utilizadas](#tecnologias-utilizadas)
-4. [Requisitos Previos](#requisitos-previos)
-5. [Instalacion Rapida](#instalacion-rapida)
-6. [Instalacion Manual](#instalacion-manual)
-7. [Acceso y Credenciales](#acceso-y-credenciales)
-8. [Modulos del Sistema](#modulos-del-sistema)
-9. [Flujo de Versiones de Documentos](#flujo-de-versiones-de-documentos)
-10. [Roles de Usuario](#roles-de-usuario)
-11. [Estructura del Repositorio](#estructura-del-repositorio)
-12. [Base de Datos](#base-de-datos)
-13. [API Endpoints](#api-endpoints)
-14. [Comandos Utiles](#comandos-utiles)
+1. [¿Qué es este proyecto?](#-qué-es-este-proyecto)
+2. [Arquitectura del Sistema](#-arquitectura-del-sistema)
+3. [Tecnologías Utilizadas](#-tecnologías-utilizadas)
+4. [Requisitos Previos](#-requisitos-previos)
+5. [Instalación Rápida](#-instalación-rápida)
+6. [Instalación Manual](#-instalación-manual)
+7. [Acceso y Credenciales](#-acceso-y-credenciales)
+8. [Módulos del Sistema](#-módulos-del-sistema)
+9. [Flujo de Versiones de Documentos](#-flujo-de-versiones-de-documentos)
+10. [Roles de Usuario](#-roles-de-usuario)
+11. [Estructura del Repositorio](#-estructura-del-repositorio)
+12. [Base de Datos](#-base-de-datos)
+13. [API Endpoints](#-api-endpoints)
+14. [Comandos Útiles](#-comandos-útiles)
 
 ---
 
-## Descripcion del Proyecto
+## 🎯 ¿Qué es este proyecto?
 
 **QualityDoc-Polyglot** es una plataforma multi-empresa para el control del **ciclo de vida de documentos de calidad** bajo normativas como **ISO 9001** e **IATF 16949**.
 
@@ -35,60 +35,60 @@ Es un proyecto **polyglot** (multilenguaje y multi-base de datos) que integra tr
 
 ---
 
-## Arquitectura del Sistema
+## 🏗️ Arquitectura del Sistema
 
 ```
-+----------------------------------------------------------+
-|                    USUARIO / NAVEGADOR                    |
-+----------+----------------+----------------+-------------+
-           |                |                |
+┌─────────────────────────────────────────────────────────┐
+│                    USUARIO / NAVEGADOR                   │
+└──────────┬────────────────┬────────────────┬────────────┘
+           │                │                │
      Puerto 5000      Puerto 8080      Puerto 3000
-           |                |                |
-  +--------+--------+ +-----+------+ +-------+----------+
-  |  Portal Admin   | | Portal PHP | | SmartSearch      |
-  |  .NET Core 10   | |   PHP 8    | | Node.js + TS     |
-  |   (C# MVC)      | |            | | (Express)        |
-  +--------+--------+ +-----+------+ +-------+----------+
-           |                |                |
-    +------+------+  +------+------+  +------+------+
-    |  SQL Server |  | PostgreSQL  |  |   MongoDB   |
-    |  (Puerto    |  |  (Puerto    |  |  (Puerto    |
-    |   1433)     |  |   5432)     |  |   27017)    |
-    +-------------+  +-------------+  +-------------+
+           │                │                │
+  ┌────────▼───────┐ ┌──────▼──────┐ ┌──────▼──────────┐
+  │  Portal Admin  │ │ Portal PHP  │ │ SmartSearch     │
+  │  .NET Core 10  │ │   PHP 8     │ │ Node.js + TS    │
+  │   (C# MVC)     │ │             │ │ (Express)       │
+  └────────┬───────┘ └──────┬──────┘ └──────┬──────────┘
+           │                │                │
+    ┌──────▼──────┐  ┌──────▼──────┐  ┌─────▼───────┐
+    │  SQL Server │  │ PostgreSQL  │  │   MongoDB   │
+    │  (Puerto    │  │  (Puerto    │  │  (Puerto    │
+    │   1433)     │  │   5432)     │  │   27017)    │
+    └─────────────┘  └─────────────┘  └─────────────┘
 ```
 
 ### Red interna Docker: `qualitydoc-net`
 
-Todos los servicios se comunican entre si dentro de la red privada de Docker. Solo los puertos necesarios estan expuestos al host.
+Todos los servicios se comunican entre sí dentro de la red privada de Docker. Solo los puertos necesarios están expuestos al host.
 
 ---
 
-## Tecnologias Utilizadas
+## 🛠️ Tecnologías Utilizadas
 
-| Capa | Tecnologia | Version | Proposito |
+| Capa | Tecnología | Versión | Propósito |
 |------|-----------|---------|-----------|
-| **Backend Admin** | .NET Core MVC (C#) | 10.0 | Gestion de flujo documental |
-| **Backend Publico** | PHP | 8.x | Portal de consulta publica |
-| **Backend Busqueda** | Node.js + TypeScript | 20 LTS | Indexacion y busqueda full-text |
+| **Backend Admin** | .NET Core MVC (C#) | 10.0 | Gestión de flujo documental |
+| **Backend Público** | PHP | 8.x | Portal de consulta pública |
+| **Backend Búsqueda** | Node.js + TypeScript | 20 LTS | Indexación y búsqueda full-text |
 | **BD Principal** | SQL Server | 2022 | Documentos, usuarios, flujo de trabajo |
-| **BD Publica** | PostgreSQL | 16 | Documentos vigentes, logs de consulta |
-| **BD Busqueda** | MongoDB | 7 | Indice de texto completo (full-text search) |
-| **Contenedores** | Docker + Docker Compose | Latest | Orquestacion de servicios |
+| **BD Pública** | PostgreSQL | 16 | Documentos vigentes, logs de consulta |
+| **BD Búsqueda** | MongoDB | 7 | Índice de texto completo (full-text search) |
+| **Contenedores** | Docker + Docker Compose | Latest | Orquestación de servicios |
 | **Frontend** | Bootstrap 5 + Bootstrap Icons | 5.3 | UI responsiva |
 
 ---
 
-## Requisitos Previos
+## ✅ Requisitos Previos
 
 Solo necesitas **una** cosa instalada:
 
 - **[Docker Desktop](https://www.docker.com/products/docker-desktop/)** — incluye Docker Engine y Docker Compose.
 
-> Asegurate de que Docker Desktop este **abierto y corriendo** antes de instalar.
+> ⚠️ Asegúrate de que Docker Desktop esté **abierto y corriendo** antes de instalar.
 
 ---
 
-## Instalacion Rapida
+## 🚀 Instalación Rápida
 
 ### En Windows:
 ```
@@ -113,7 +113,7 @@ chmod +x install.sh
 
 ---
 
-## Instalacion Manual
+## 🔧 Instalación Manual
 
 Si prefieres hacerlo paso a paso desde la terminal:
 
@@ -128,21 +128,21 @@ cd docker
 # 3. Construye y levanta todos los contenedores
 docker-compose up -d --build
 
-# 4. Verifica que todos los contenedores esten corriendo
+# 4. Verifica que todos los contenedores estén corriendo
 docker-compose ps
 ```
 
 ---
 
-## Acceso y Credenciales
+## 🔑 Acceso y Credenciales
 
-### Portal Principal — .NET (Administracion)
+### Portal Principal — .NET (Administración)
 | URL | http://localhost:5000 |
 |-----|----------------------|
 
 **Usuarios de prueba:**
 
-| Rol | Correo | Contrasena |
+| Rol | Correo | Contraseña |
 |-----|--------|------------|
 | Administrador | `admin@empresa.com` | `Admin123!` |
 | Autor | `autor1@empresa.com` | `Autor123!` |
@@ -151,189 +151,189 @@ docker-compose ps
 
 ---
 
-### Portal Publico — PHP (Consulta de Documentos)
+### Portal Público — PHP (Consulta de Documentos)
 | URL | http://localhost:8080 |
 |-----|----------------------|
 
-| Usuario | Contrasena |
+| Usuario | Contraseña |
 |---------|------------|
 | `usuarioConsulta` | `Rosa123` |
 
 ---
 
-### Servicio de Busqueda — Node.js
+### Servicio de Búsqueda — Node.js
 | URL | http://localhost:3000 |
 |-----|----------------------|
 
-> La busqueda inteligente tambien esta integrada en el portal .NET en `/SmartSearch`.
+> La búsqueda inteligente también está integrada en el portal .NET en `/SmartSearch`.
 
 ---
 
-### Bases de Datos (conexion directa)
+### Bases de Datos (conexión directa)
 
-| Base de Datos | Host | Puerto | Usuario | Contrasena | BD |
-|--------------|------|--------|---------|------------|-----|
+| Base de Datos | Host | Puerto | Usuario | Contraseña | BD |
+|--------------|------|--------|---------|------------|----|
 | SQL Server | localhost | 1433 | `sa` | `YourStrong@Passw0rd` | `QualityDocDB` |
 | PostgreSQL | localhost | 5432 | `Rosalinda` | `Rosa123` | `gestionconsulta` |
-| MongoDB | localhost | 27017 | (sin autenticacion) | — | `qualitydoc` |
+| MongoDB | localhost | 27017 | _(sin auth)_ | — | `qualitydoc` |
 
 ---
 
-## Modulos del Sistema
+## 📦 Módulos del Sistema
 
-### 1. Portal de Administracion (.NET Core)
+### 1. 🏢 Portal de Administración (.NET Core)
 
-El modulo central del sistema. Gestiona el flujo completo de documentos.
+El módulo central del sistema. Gestiona el flujo completo de documentos.
 
 **Funcionalidades:**
-- Registro e inicio de sesion con roles
-- Creacion de documentos con carga de archivos PDF
-- Flujo de trabajo: Autor → Revisor → Autorizador
-- Sistema de rechazo con notas/comentarios
-- Control de versiones automatico
-- Historial de versiones obsoletas (desplegable por documento)
-- Busqueda inteligente en MongoDB (SmartSearch)
-- Panel de administracion (gestion de usuarios, empresas, normas ISO)
-- Descarga de documentos PDF
-- Gestion multi-empresa (cada empresa solo ve sus documentos)
+- ✅ Registro e inicio de sesión con roles
+- ✅ Creación de documentos con carga de archivos PDF
+- ✅ Flujo de trabajo: Autor → Revisor → Autorizador
+- ✅ Sistema de rechazo con notas/comentarios
+- ✅ Control de versiones automático
+- ✅ Historial de versiones obsoletas (desplegable por documento)
+- ✅ Búsqueda inteligente en MongoDB (SmartSearch)
+- ✅ Panel de administración (gestión de usuarios, empresas, normas ISO)
+- ✅ Descarga de documentos PDF
+- ✅ Gestión multi-empresa (cada empresa solo ve sus documentos)
 
 **Controladores principales:**
 
 | Controlador | Responsabilidad |
 |------------|----------------|
 | `AuthController` | Login / Logout |
-| `AuthorController` | Crear y editar documentos, enviar a revision |
+| `AuthorController` | Crear y editar documentos, enviar a revisión |
 | `ReviewerController` | Revisar documentos, aprobar o rechazar |
-| `ApproverController` | Autorizar documentos, activar version vigente |
-| `AdminController` | Gestion de usuarios, empresas, catalogos ISO |
-| `SmartSearchController` | Busqueda full-text en MongoDB |
+| `ApproverController` | Autorizar documentos, activar versión vigente |
+| `AdminController` | Gestión de usuarios, empresas, catálogos ISO |
+| `SmartSearchController` | Búsqueda full-text en MongoDB |
 
 ---
 
-### 2. Portal Publico (PHP + PostgreSQL)
+### 2. 🌐 Portal Público (PHP + PostgreSQL)
 
 Portal de solo lectura para operarios y personal de planta.
 
 **Funcionalidades:**
-- Inicio de sesion con credenciales de consulta
-- Listado de documentos vigentes agrupados por codigo
-- Historial de versiones obsoletas (pestana desplegable)
-- Descarga de documentos PDF vigentes
-- Registro automatico de logs de consulta (quien consulto que y cuando)
-- Reportes de auditoria
+- ✅ Inicio de sesión con credenciales de consulta
+- ✅ Listado de documentos vigentes agrupados por código
+- ✅ Historial de versiones obsoletas (pestaña desplegable)
+- ✅ Descarga de documentos PDF vigentes
+- ✅ Registro automático de logs de consulta (quién consultó qué y cuándo)
+- ✅ Reportes de auditoría
 
 ---
 
-### 3. Busqueda Inteligente (Node.js + MongoDB)
+### 3. 🔍 Búsqueda Inteligente (Node.js + MongoDB)
 
-Motor de busqueda full-text integrado en el portal .NET.
+Motor de búsqueda full-text integrado en el portal .NET.
 
 **Funcionalidades:**
-- Indexacion automatica del contenido completo de los PDFs
-- Busqueda por titulo, contenido, autor, norma ISO
-- Fallback con busqueda por expresiones regulares (Regex)
-- Historial de versiones obsoletas por documento
-- Separacion por empresa (cada empresa solo busca en sus documentos)
-- Vista previa del texto extraido del PDF
+- ✅ Indexación automática del contenido completo de los PDFs
+- ✅ Búsqueda por título, contenido, autor, norma ISO
+- ✅ Fallback con búsqueda por expresiones regulares (Regex)
+- ✅ Historial de versiones obsoletas por documento
+- ✅ Separación por empresa (cada empresa solo busca en sus documentos)
+- ✅ Vista previa del texto extraído del PDF
 
 ---
 
-## Flujo de Versiones de Documentos
+## 🔄 Flujo de Versiones de Documentos
 
-El sistema aplica versionado automatico siguiendo esta logica:
+El sistema aplica versionado automático siguiendo esta lógica:
 
 ```
 AUTOR crea documento
-        |
-        v
-   Version: 0.1  ---- Envia a revision
-        |
+        │
+        ▼
+   Versión: 0.1  ──── Envía a revisión
+        │
    REVISOR revisa
-        +-- Rechaza --> AUTOR corrige --> Version: 0.2 --> Revisor de nuevo --> 0.3...
-        |
-        +-- Aprueba --> AUTORIZADOR revisa
-                             +-- Rechaza --> vuelve al autor (sigue siendo 0.x)
-                             |
-                             +-- Autoriza --> Version: 1.0  (VIGENTE)
-                                                |
+        ├── Rechaza ──► AUTOR corrige ──► Versión: 0.2 ──► Revisor de nuevo ──► 0.3...
+        │
+        └── Aprueba ──► AUTORIZADOR revisa
+                             ├── Rechaza ──► vuelve al autor (sigue siendo 0.x)
+                             │
+                             └── Autoriza ──► Versión: 1.0 ✅ (VIGENTE)
+                                                │
                                            AUTOR edita
-                                                |
-                                           Version: 1.1 --> Revisor --> Autorizador
-                                                                              |
-                                                                         Autoriza --> 2.0
+                                                │
+                                           Versión: 1.1 ──► Revisor ──► Autorizador
+                                                                              │
+                                                                         Autoriza ──► 2.0 ✅
 ```
 
-**Regla matematica de versiones:**
-- Durante revision: `X.1`, `X.2`, `X.3`... (incremento decimal)
-- Al autorizar: `Math.Floor(version_actual) + 1.0` → numero entero nuevo
+**Regla matemática de versiones:**
+- Durante revisión: `X.1`, `X.2`, `X.3`... (incremento decimal)
+- Al autorizar: `Math.Floor(versión_actual) + 1.0` → número entero nuevo
 
 ---
 
-## Roles de Usuario
+## 👥 Roles de Usuario
 
 | Rol | Permisos |
 |-----|---------|
 | **Administrador** | Gestiona usuarios, empresas, normas ISO. Ve todos los documentos. |
-| **Autor** | Crea documentos, los edita y los envia a revision. |
+| **Autor** | Crea documentos, los edita y los envía a revisión. |
 | **Revisor** | Revisa documentos del Autor. Puede aprobar (enviar al autorizador) o rechazar (devolver al autor). |
-| **Autorizador** | Aprueba o rechaza documentos revisados. Al aprobar, activa la nueva version vigente. |
+| **Autorizador** | Aprueba o rechaza documentos revisados. Al aprobar, activa la nueva versión vigente. |
 | **Consulta (PHP)** | Solo puede ver y descargar documentos vigentes. No puede modificar nada. |
 
 ---
 
-## Estructura del Repositorio
+## 📁 Estructura del Repositorio
 
 ```
 QualityDoc-Polyglot/
-|
-+-- install.bat          <- Script de instalacion (Windows)
-+-- install.sh           <- Script de instalacion (Linux/macOS)
-+-- stop.bat             <- Detener servicios (Windows)
-+-- stop.sh              <- Detener servicios (Linux/macOS)
-+-- README.md            <- Este archivo
-|
-+-- docker/
-|   +-- docker-compose.yml  <- Orquestacion de todos los servicios
-|   +-- node.Dockerfile     <- Imagen del servicio Node.js
-|   +-- php.Dockerfile      <- Imagen del servicio PHP
-|
-+-- db/
-|   +-- postgres/
-|   |   +-- init.sql        <- Esquema y datos iniciales de PostgreSQL
-|   +-- sqlserver/
-|   |   +-- init.sql        <- Esquema y datos iniciales de SQL Server
-|   +-- mongodb/
-|       +-- init-mongo.js   <- Indices y datos semilla de MongoDB
-|
-+-- src/
-    +-- dotnet-core/        <- Portal de Administracion (.NET Core 10)
-    |   +-- src/modulo-central/
-    |       +-- QualityDocc.Domain/        <- Entidades y modelos
-    |       +-- QualityDocc.Application/   <- Interfaces y logica de negocio
-    |       +-- QualityDocc.Infrastructure/<- Repositorios y servicios externos
-    |       +-- QualityDocc.MVC/           <- Controladores, vistas, configuracion
-    |       +-- QualityDocc.Tests/         <- Pruebas unitarias (13 tests)
-    |
-    +-- php-app/            <- Portal Publico (PHP 8)
-    |   +-- index.php
-    |   +-- login.php
-    |   +-- documentos.php  <- Lista documentos vigentes + historial
-    |   +-- reportes.php    <- Logs de auditoria
-    |
-    +-- node-service/       <- Servicio de Busqueda (Node.js + TypeScript)
-        +-- src/
-            +-- controllers/
-            |   +-- document.controller.ts
-            +-- app.ts
+│
+├── 📄 install.bat          ← Script de instalación (Windows)
+├── 📄 install.sh           ← Script de instalación (Linux/macOS)
+├── 📄 stop.bat             ← Detener servicios (Windows)
+├── 📄 stop.sh              ← Detener servicios (Linux/macOS)
+├── 📄 README.md            ← Este archivo
+│
+├── 🐳 docker/
+│   ├── docker-compose.yml  ← Orquestación de todos los servicios
+│   ├── node.Dockerfile     ← Imagen del servicio Node.js
+│   └── php.Dockerfile      ← Imagen del servicio PHP
+│
+├── 🗄️ db/
+│   ├── postgres/
+│   │   └── init.sql        ← Esquema y datos iniciales de PostgreSQL
+│   ├── sqlserver/
+│   │   └── init.sql        ← Esquema y datos iniciales de SQL Server
+│   └── mongodb/
+│       └── init-mongo.js   ← Índices y datos semilla de MongoDB
+│
+└── 💻 src/
+    ├── dotnet-core/        ← Portal de Administración (.NET Core 10)
+    │   └── src/modulo-central/
+    │       ├── QualityDocc.Domain/        ← Entidades y modelos
+    │       ├── QualityDocc.Application/   ← Interfaces y lógica de negocio
+    │       ├── QualityDocc.Infrastructure/← Repositorios y servicios externos
+    │       ├── QualityDocc.MVC/           ← Controladores, vistas, configuración
+    │       └── QualityDocc.Tests/         ← Pruebas unitarias (13 tests ✅)
+    │
+    ├── php-app/            ← Portal Público (PHP 8)
+    │   ├── index.php
+    │   ├── login.php
+    │   ├── documentos.php  ← Lista documentos vigentes + historial
+    │   └── reportes.php    ← Logs de auditoría
+    │
+    └── node-service/       ← Servicio de Búsqueda (Node.js + TypeScript)
+        └── src/
+            ├── controllers/
+            │   └── document.controller.ts
+            └── app.ts
 ```
 
 ---
 
-## Base de Datos
+## 🗄️ Base de Datos
 
 ### SQL Server — Tablas principales
 
-| Tabla | Descripcion |
+| Tabla | Descripción |
 |-------|------------|
 | `User` | Usuarios del sistema con roles y empresa |
 | `Role` | Roles: Admin, Author, Reviewer, Approver |
@@ -344,20 +344,20 @@ QualityDoc-Polyglot/
 
 ### PostgreSQL — Tablas principales
 
-| Tabla | Descripcion |
+| Tabla | Descripción |
 |-------|------------|
 | `DocumentosVigentes` | Copia de documentos en estado Vigente para consulta |
-| `LogsConsultas` | Registro de quien descargo que documento y cuando |
+| `LogsConsultas` | Registro de quién descargó qué documento y cuándo |
 
-### MongoDB — Coleccion `documents`
+### MongoDB — Colección `documents`
 
 ```json
 {
   "title": "Manual de Calidad",
   "fileExtension": "pdf",
-  "body": "...texto completo extraido del PDF...",
+  "body": "...texto completo extraído del PDF...",
   "empresaid": 1001,
-  "status": "Vigente",
+  "status": "Vigente",   // o "Obsoleto"
   "metadata": {
     "author": "autor1",
     "version": "2.0",
@@ -371,33 +371,33 @@ QualityDoc-Polyglot/
 
 ---
 
-## API Endpoints
+## 🌐 API Endpoints
 
 ### Node.js (Puerto 3000)
 
-| Metodo | Ruta | Descripcion |
+| Método | Ruta | Descripción |
 |--------|------|-------------|
-| `POST` | `/api/login` | Autenticacion de usuario |
-| `GET` | `/api/search?q=texto&empresaId=1` | Busqueda full-text |
+| `POST` | `/api/login` | Autenticación de usuario |
+| `GET` | `/api/search?q=texto&empresaId=1` | Búsqueda full-text |
 
 ### .NET (Puerto 5000) — Rutas principales
 
-| Ruta | Descripcion |
+| Ruta | Descripción |
 |------|------------|
-| `/Auth/Login` | Inicio de sesion |
+| `/Auth/Login` | Inicio de sesión |
 | `/Author/Index` | Panel del Autor |
 | `/Author/Create` | Crear nuevo documento |
 | `/Author/Search` | Buscar documentos propios |
 | `/Reviewer/Index` | Panel del Revisor |
 | `/Approver/Index` | Panel del Autorizador |
-| `/Admin/Index` | Panel de Administracion |
-| `/SmartSearch` | Busqueda inteligente en MongoDB |
+| `/Admin/Index` | Panel de Administración |
+| `/SmartSearch` | Búsqueda inteligente en MongoDB |
 
 ---
 
-## Pruebas
+## 🧪 Pruebas
 
-El proyecto incluye **13 pruebas unitarias** que se ejecutan automaticamente al construir el contenedor Docker:
+El proyecto incluye **13 pruebas unitarias** que se ejecutan automáticamente al construir el contenedor Docker:
 
 ```
 Passed!  - Failed: 0, Passed: 13, Skipped: 0, Total: 13
@@ -411,13 +411,13 @@ docker exec admin-dotnet dotnet test
 
 ---
 
-## Comandos Utiles
+## ⚙️ Comandos Útiles
 
 ```bash
 # Ver estado de todos los contenedores
 docker-compose ps
 
-# Ver logs de un servicio especifico
+# Ver logs de un servicio específico
 docker logs admin-dotnet
 docker logs web-php
 docker logs search-service
@@ -431,7 +431,7 @@ docker-compose up -d --build admin-dotnet
 # Detener sin borrar datos
 docker-compose stop
 
-# Detener y eliminar contenedores (mantiene volumenes/datos)
+# Detener y eliminar contenedores (mantiene volúmenes/datos)
 docker-compose down
 
 # Eliminar TODO incluyendo datos (reset completo)
@@ -440,12 +440,12 @@ docker-compose down -v
 
 ---
 
-## Autora
+## 👩‍💻 Autoras
 
-**Rosalinda** — Instituto Tecnologico Superior de Monclova  
-6to Semestre · Ingenieria en Sistemas Computacionales  
+**Odeth Peña y Rosalinda Cedillo** — Instituto Tecnológico Superior de Monclova  
+6to Semestre · Ingeniería informatica
 Proyecto Integrador — 2026
 
 ---
 
-> **Nota:** Este proyecto fue desarrollado como proyecto integrador academico. El sistema implementa conceptos de arquitectura polyglot, microservicios, contenedores Docker, control de versiones y gestion documental basada en normativas ISO.
+> 💡 **Nota:** Este proyecto fue desarrollado como proyecto integrador académico. El sistema implementa conceptos de arquitectura polyglot, microservicios, contenedores Docker, control de versiones y gestión documental basada en normativas ISO.
