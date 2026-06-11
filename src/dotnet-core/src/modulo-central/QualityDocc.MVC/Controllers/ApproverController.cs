@@ -163,16 +163,24 @@ namespace QualityDocc.MVC.Controllers
                             await _context.SaveChangesAsync();
                             await transaction.CommitAsync();
 
-                            // 4. Extraer texto del PDF
-                            string pdfText = "";
+                            // 4. Extraer texto del documento (PDF o Word)
+                            string documentText = "";
                             if (!string.IsNullOrEmpty(lastVersion.FileUrl))
                             {
                                 var filePath = Path.Combine(_environment.WebRootPath, lastVersion.FileUrl.TrimStart('/'));
-                                pdfText = PdfParser.ExtractText(filePath);
+                                var ext = Path.GetExtension(lastVersion.FileUrl).ToLower();
+                                if (ext == ".docx")
+                                {
+                                    documentText = DocxParser.ExtractText(filePath);
+                                }
+                                else
+                                {
+                                    documentText = PdfParser.ExtractText(filePath);
+                                }
                             }
 
                             // 5. Sincronizar a MongoDB (directamente) y PHP (PostgreSQL)
-                            await SynchronizeToExternalServices(doc, lastVersion, currentUser.CompanyId ?? 0, pdfText);
+                            await SynchronizeToExternalServices(doc, lastVersion, currentUser.CompanyId ?? 0, documentText);
                         }
                         else
                         {
