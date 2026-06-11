@@ -7,7 +7,7 @@ services:
   
   # Base de Datos PostgreSQL
   db-postgres:
-    image: postgres:16
+    image: postgres:16.3-alpine3.20
     container_name: db-postgres
     ports:
       - "5432:5432"
@@ -50,7 +50,7 @@ services:
 
   # Base de Datos NoSQL MongoDB
   db-mongodb:
-    image: mongo:7.0.12
+    image: mongo:6.0.16
     container_name: db-mongodb
     ports:
       - "27017:27017"

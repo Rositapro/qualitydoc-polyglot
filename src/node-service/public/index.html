@@ -471,6 +471,30 @@
     .spinner-mocha {
       color: var(--mocha-brown);
     }
+
+    /* Versiones anteriores (obsoletas) */
+    .versions-panel {
+      margin-top: 10px;
+      border-top: 1px dashed var(--warm-taupe);
+      padding-top: 10px;
+      font-size: 0.85rem;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .version-item {
+      padding: 6px 10px;
+      margin-bottom: 5px;
+      background-color: #FAF9F5;
+      border: 1px solid var(--light-border);
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .version-tag {
+      font-weight: bold;
+      color: var(--mocha-brown);
+    }
   </style>
 </head>
 <body>
@@ -960,6 +984,19 @@
           `;
         }
 
+        const docId = (doc.metadata && doc.metadata.documentId) ? doc.metadata.documentId : null;
+        let obsoleteBtnHtml = '';
+        if (docId) {
+          obsoleteBtnHtml = `
+            <div class="mt-2 pt-2 border-top">
+              <button class="btn btn-sm btn-outline-secondary w-100" onclick="toggleObsoleteVersions(${docId}, ${idx}, this)">
+                <i class="bi bi-clock-history"></i> Ver versiones anteriores
+              </button>
+              <div id="obsolete-container-${idx}" class="versions-panel d-none" data-loaded="false" data-count="0"></div>
+            </div>
+          `;
+        }
+
         col.innerHTML = `
           <div class="document-card shadow-sm">
             <div>
@@ -978,6 +1015,7 @@
                 ${tagsHtml}
               </div>
               ${metadataBoxHtml}
+              ${obsoleteBtnHtml}
             </div>
             
             <div class="row g-2 mt-2">
@@ -1110,6 +1148,72 @@
       
       jsonContainer.innerHTML = syntaxHighlight(cleanMeta);
       metadataModal.show();
+    }
+
+    // Alternar y consultar versiones obsoletas
+    async function toggleObsoleteVersions(documentId, idx, button) {
+      const container = document.getElementById(`obsolete-container-${idx}`);
+      if (!container) return;
+
+      if (!container.classList.contains('d-none')) {
+        container.classList.add('d-none');
+        button.innerHTML = `<i class="bi bi-clock-history"></i> Ver versiones anteriores`;
+        return;
+      }
+
+      if (container.dataset.loaded === 'true') {
+        container.classList.remove('d-none');
+        button.innerHTML = `<i class="bi bi-clock-history"></i> Ocultar versiones (${container.dataset.count})`;
+        return;
+      }
+
+      button.disabled = true;
+      button.innerHTML = `<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Cargando...`;
+
+      try {
+        const response = await fetch(`/api/documents/obsolete/${documentId}`);
+        const resData = await response.json();
+
+        if (resData.success) {
+          const versions = resData.data;
+          container.innerHTML = '';
+
+          if (versions.length === 0) {
+            container.innerHTML = `<div class="text-muted fst-italic text-center py-1">No hay versiones anteriores.</div>`;
+          } else {
+            versions.forEach(v => {
+              const meta = v.metadata || {};
+              const author = meta.author || 'Desconocido';
+              const verNum = meta.version || '0.0';
+              container.innerHTML += `
+                <div class="version-item">
+                  <div>
+                    <span class="version-tag">v${verNum}</span>
+                    <span class="text-muted ms-2">por ${escapeHtml(author)}</span>
+                  </div>
+                  <small class="text-muted">${formatDate(v.createdAt)}</small>
+                </div>
+              `;
+            });
+          }
+
+          container.dataset.loaded = 'true';
+          container.dataset.count = versions.length;
+          container.classList.remove('d-none');
+          button.innerHTML = `<i class="bi bi-clock-history"></i> Ocultar versiones (${versions.length})`;
+        } else {
+          container.innerHTML = `<div class="text-danger py-1">Error al cargar versiones.</div>`;
+          container.classList.remove('d-none');
+          button.innerHTML = `<i class="bi bi-clock-history"></i> Ver versiones anteriores`;
+        }
+      } catch (err) {
+        console.error(err);
+        container.innerHTML = `<div class="text-danger py-1">Error de conexión.</div>`;
+        container.classList.remove('d-none');
+        button.innerHTML = `<i class="bi bi-clock-history"></i> Ver versiones anteriores`;
+      } finally {
+        button.disabled = false;
+      }
     }
 
     // Formatear Fecha

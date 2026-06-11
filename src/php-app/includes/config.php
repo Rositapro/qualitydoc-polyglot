@@ -15,8 +15,8 @@ define('DB_USER', getenv('DB_USER') ?: 'sgd_user');
 define('DB_PASSWORD', getenv('DB_PASSWORD') ?: 'sgd_password');
 
 // URL del Endpoint Externo para Validación de Login (cURL)
-// Dentro de Docker, el servicio web se comunica consigo mismo mediante http://web/api/mock_auth.php
-define('AUTH_API_URL', getenv('AUTH_API_URL') ?: 'http://web/api/mock_auth.php');
+// Se conecta al Módulo Central de .NET a través del host de Docker
+define('AUTH_API_URL', getenv('AUTH_API_URL') ?: 'http://host.docker.internal:5000/api/login');
 
 // URL del Microservicio de Búsqueda de MongoDB (Node.js)
 define('SEARCH_API_URL', getenv('SEARCH_API_URL') ?: 'http://search-service:3000/api/documents/search');

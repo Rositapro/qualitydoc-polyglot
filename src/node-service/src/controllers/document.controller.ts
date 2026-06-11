@@ -142,3 +142,41 @@ export const searchDocuments = async (
     });
   }
 };
+
+/**
+ * Endpoint GET: Obtener versiones obsoletas para un documento específico
+ */
+export const getObsoleteVersions = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { documentId } = req.params;
+    if (!documentId) {
+      res.status(400).json({ success: false, error: 'El parámetro "documentId" es requerido.' });
+      return;
+    }
+
+    const obsoleteDocs = await DocumentModel.find({
+      'metadata.documentId': Number(documentId),
+      status: 'Obsoleto'
+    })
+    .sort({ 'metadata.version': -1 })
+    .exec();
+
+    res.status(200).json({
+      success: true,
+      count: obsoleteDocs.length,
+      data: obsoleteDocs
+    });
+  } catch (error: any) {
+    console.error('Error al obtener versiones obsoletas:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error interno del servidor al obtener versiones obsoletas.',
+      details: error.message
+    });
+  }
+};
+

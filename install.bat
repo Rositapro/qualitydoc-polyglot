@@ -27,15 +27,12 @@ echo  OK - Docker encontrado.
 :: ─────────────────────────────────────────────
 echo.
 echo [2/5] Verificando Docker Compose...
-docker compose version >nul 2>&1
-if %errorlevel% neq 0 (
-    docker-compose --version >nul 2>&1
-    if %errorlevel% neq 0 (
-        echo  ERROR: Docker Compose no esta instalado.
-        echo  Instala Docker Desktop (incluye Docker Compose).
-        pause
-        exit /b 1
-    )
+docker compose version >nul 2>&1 || docker-compose --version >nul 2>&1
+if !errorlevel! neq 0 (
+    echo  ERROR: Docker Compose no esta instalado.
+    echo  Instala Docker Desktop (incluye Docker Compose).
+    pause
+    exit /b 1
 )
 echo  OK - Docker Compose encontrado.
 
