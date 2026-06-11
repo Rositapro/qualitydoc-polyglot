@@ -173,6 +173,10 @@ namespace QualityDocc.MVC.Controllers
                                 {
                                     documentText = DocxParser.ExtractText(filePath);
                                 }
+                                else if (ext == ".xlsx")
+                                {
+                                    documentText = XlsxParser.ExtractText(filePath);
+                                }
                                 else
                                 {
                                     documentText = PdfParser.ExtractText(filePath);

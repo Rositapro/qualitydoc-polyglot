@@ -686,6 +686,7 @@
     let documentsList = [];
     let currentPage = 1;
     const itemsPerPage = 10;
+    let obsoleteDocumentsMap = {};
 
     // Modales Bootstrap
     const viewerModal = new bootstrap.Modal(document.getElementById('viewerModal'));
@@ -823,6 +824,7 @@
     async function fetchDocuments() {
       showLoader(true);
       resultsGrid.innerHTML = '';
+      obsoleteDocumentsMap = {};
 
       try {
         const savedUser = sessionStorage.getItem('qualitydoc_user');
@@ -1106,8 +1108,8 @@
     }
 
     // Abrir visor de documento
-    function viewDocument(index) {
-      const doc = documentsList[index];
+    function viewDocument(key) {
+      const doc = typeof key === 'number' ? documentsList[key] : obsoleteDocumentsMap[key];
       if (!doc) return;
 
       document.getElementById('viewerModalLabel').textContent = doc.title;
@@ -1129,8 +1131,8 @@
     }
 
     // Abrir modal de metadatos completos
-    function viewMetadata(index) {
-      const doc = documentsList[index];
+    function viewMetadata(key) {
+      const doc = typeof key === 'number' ? documentsList[key] : obsoleteDocumentsMap[key];
       if (!doc) return;
 
       document.getElementById('metadataModalLabel').textContent = `Metadatos: ${doc.title}`;
@@ -1185,13 +1187,27 @@
               const meta = v.metadata || {};
               const author = meta.author || 'Desconocido';
               const verNum = meta.version || '0.0';
+              
+              // Guardar en el mapa de documentos obsoletos para poder visualizarlos
+              obsoleteDocumentsMap[v._id] = v;
+
               container.innerHTML += `
-                <div class="version-item">
-                  <div>
-                    <span class="version-tag">v${verNum}</span>
-                    <span class="text-muted ms-2">por ${escapeHtml(author)}</span>
+                <div class="version-item d-flex flex-column align-items-stretch gap-1">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <span class="version-tag">v${verNum}</span>
+                      <span class="text-muted ms-1" style="font-size: 0.8rem;">por ${escapeHtml(author)}</span>
+                    </div>
+                    <small class="text-muted" style="font-size: 0.75rem;">${formatDate(v.createdAt)}</small>
                   </div>
-                  <small class="text-muted">${formatDate(v.createdAt)}</small>
+                  <div class="d-flex gap-2 justify-content-end mt-1">
+                    <button class="btn btn-sm btn-action py-1 px-2" style="font-size: 0.75rem;" onclick="viewDocument('${v._id}')">
+                      <i class="bi bi-eye-fill"></i> Ver Texto
+                    </button>
+                    <button class="btn btn-sm btn-outline-action py-1 px-2" style="font-size: 0.75rem;" onclick="viewMetadata('${v._id}')">
+                      <i class="bi bi-braces"></i> JSON Meta
+                    </button>
+                  </div>
                 </div>
               `;
             });

@@ -161,13 +161,13 @@
                         </div>
 
                         <div class="mb-4">
-                            <label class="form-label custom-label">Archivo (PDF o DOCX)</label>
+                            <label class="form-label custom-label">Archivo (PDF, DOCX o XLSX)</label>
                             <div class="drop-zone" onclick="document.getElementById('fileInput').click()">
                                 <i class="fas fa-file-upload"></i>
                                 <p class="mt-2 drop-zone-text">Arrastra tus archivos aquí o haz clic para buscar</p>
                                 <div id="fileInfo" class="mt-2" style="color: #734F31; font-weight: bold;"></div>
                             </div>
-                            <input type="file" id="fileInput" name="archivo" class="d-none" accept=".pdf,.docx" required onchange="showFileName(this)">
+                            <input type="file" id="fileInput" name="archivo" class="d-none" accept=".pdf,.docx,.xlsx" required onchange="showFileName(this)">
                         </div>
 
                         <div class="mb-4">
@@ -244,7 +244,7 @@
                 // 1. Validamos manualmente el archivo oculto primero
                 if (fileInput.files.length === 0) {
                     e.preventDefault();
-                    alert("⚠️ Por favor, selecciona un documento (PDF o DOCX) en la zona de carga.");
+                    alert("⚠️ Por favor, selecciona un documento (PDF, DOCX o XLSX) en la zona de carga.");
                     return; // Detenemos el proceso aquí
                 }
 

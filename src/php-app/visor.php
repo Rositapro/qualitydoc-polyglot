@@ -201,7 +201,7 @@ try {
                                                 $fecha = '-';
                                                 if (!empty($h['rutaarchivo'])) {
                                                     // Extraer timestamp del final del nombre (e.g. _1780949415.pdf)
-                                                    if (preg_match('/_(\d+)\.(pdf|docx)$/i', $h['rutaarchivo'], $matches)) {
+                                                    if (preg_match('/_(\d+)\.(pdf|docx|xlsx)$/i', $h['rutaarchivo'], $matches)) {
                                                         $fecha = date('d/m/Y H:i:s', intval($matches[1]));
                                                     }
                                                 }

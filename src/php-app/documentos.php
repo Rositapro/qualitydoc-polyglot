@@ -325,15 +325,23 @@ try {
                                                             <?php if ($ver['estado'] === 'vigente'): ?>
                                                                 <span class="badge badge-status badge-vigente py-1 px-2" style="font-size: 0.75rem;">Vigente</span>
                                                                 <?php if (!empty($ver['rutaarchivo'])): ?>
+                                                                    <a href="visor.php?id=<?php echo $ver['iddocumento']; ?>" class="btn btn-sm btn-outline-primary p-1 py-0 d-flex align-items-center justify-content-center" style="font-size: 0.75rem;" title="Visualizar Versión Vigente">
+                                                                        <i class="bi bi-eye"></i>
+                                                                    </a>
                                                                     <a href="descargar.php?id=<?php echo $ver['iddocumento']; ?>" class="btn btn-sm btn-outline-success p-1 py-0 d-flex align-items-center justify-content-center" style="font-size: 0.75rem;" title="Descargar Versión Vigente">
                                                                         <i class="bi bi-download"></i>
                                                                     </a>
                                                                 <?php endif; ?>
                                                             <?php else: ?>
                                                                 <span class="badge badge-status badge-obsoleto py-1 px-2" style="font-size: 0.75rem;">Obsoleto</span>
-                                                                <span class="text-muted" title="Las versiones obsoletas no se pueden descargar (Solo Auditoría)">
-                                                                    <i class="bi bi-lock-fill"></i>
-                                                                </span>
+                                                                <?php if (!empty($ver['rutaarchivo'])): ?>
+                                                                    <a href="visor.php?id=<?php echo $ver['iddocumento']; ?>" class="btn btn-sm btn-outline-primary p-1 py-0 d-flex align-items-center justify-content-center" style="font-size: 0.75rem;" title="Visualizar Versión Obsoleta">
+                                                                        <i class="bi bi-eye"></i>
+                                                                    </a>
+                                                                    <a href="descargar.php?id=<?php echo $ver['iddocumento']; ?>" class="btn btn-sm btn-outline-secondary p-1 py-0 d-flex align-items-center justify-content-center" style="font-size: 0.75rem;" title="Descargar Versión Obsoleta">
+                                                                        <i class="bi bi-download"></i>
+                                                                    </a>
+                                                                <?php endif; ?>
                                                             <?php endif; ?>
                                                         </div>
                                                     </li>
