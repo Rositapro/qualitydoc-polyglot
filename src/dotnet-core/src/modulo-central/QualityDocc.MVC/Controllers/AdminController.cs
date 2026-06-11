@@ -239,6 +239,11 @@ namespace QualityDocc.MVC.Controllers
             IQueryable<Iso> isosQuery = _context.Iso
                 .Include(c => c.Company);
 
+            if (currentUser.CompanyId != null)
+            {
+                isosQuery = isosQuery.Where(i => i.CompanyId == currentUser.CompanyId);
+            }
+
             var isos = await isosQuery.ToListAsync();
 
             if (currentUser.CompanyId == null)

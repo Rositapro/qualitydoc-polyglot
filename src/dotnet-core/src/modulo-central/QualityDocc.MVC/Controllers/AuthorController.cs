@@ -81,7 +81,7 @@ namespace QualityDocc.MVC.Controllers
             if (user == null) return NotFound();
 
             // 2. Llenamos los ViewBags necesarios para los dropdowns y etiquetas de la vista
-            ViewBag.Isos = await _context.Iso.ToListAsync();
+            ViewBag.Isos = await _context.Iso.Where(i => i.CompanyId == user.CompanyId).ToListAsync();
             ViewBag.CompanyName = user.Company?.Name;
             ViewBag.CompanyId = user.CompanyId;
 
@@ -148,7 +148,7 @@ namespace QualityDocc.MVC.Controllers
             var user = await _context.User.Include(u => u.Company).FirstOrDefaultAsync(u => u.Id == currentUserId);
             if (user == null) return NotFound();
 
-            ViewBag.Isos = await _context.Iso.ToListAsync();
+            ViewBag.Isos = await _context.Iso.Where(i => i.CompanyId == user.CompanyId).ToListAsync();
 
             if (archivo == null || archivo.Length == 0)
             {
@@ -295,7 +295,7 @@ namespace QualityDocc.MVC.Controllers
             var currentUser = await _context.User.FindAsync(currentUserId);
             if (currentUser == null) return RedirectToAction("Login", "Auth");
 
-            ViewBag.Isos = await _context.Iso.ToListAsync();
+            ViewBag.Isos = await _context.Iso.Where(i => i.CompanyId == currentUser.CompanyId).ToListAsync();
 
             var query = _context.Document
                                 .Include(d => d.Iso)
