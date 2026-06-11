@@ -293,9 +293,11 @@ QualityDoc-Polyglot/
 ├── 📄 README.md            ← Este archivo
 │
 ├── 🐳 docker/
-│   ├── docker-compose.yml  ← Orquestación de todos los servicios
-│   ├── node.Dockerfile     ← Imagen del servicio Node.js
-│   └── php.Dockerfile      ← Imagen del servicio PHP
+│   ├── docker-compose.dotnet.yml  ← Microservicio 1: .NET + SQL Server
+│   ├── docker-compose.php.yml     ← Microservicio 2: PHP + PostgreSQL
+│   ├── docker-compose.node.yml    ← Microservicio 3: Node + MongoDB
+│   ├── node.Dockerfile            ← Imagen del servicio Node.js
+│   └── php.Dockerfile             ← Imagen del servicio PHP
 │
 ├── 🗄️ db/
 │   ├── postgres/

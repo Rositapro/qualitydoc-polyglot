@@ -1,6 +1,8 @@
 <Solution>
   <Folder Name="/Elementos de la solución/">
-    <File Path="docker-compose.yml" />
+    <File Path="../../../docker/docker-compose.dotnet.yml" />
+    <File Path="../../../docker/docker-compose.php.yml" />
+    <File Path="../../../docker/docker-compose.node.yml" />
     <File Path="nginx.conf" />
   </Folder>
   <Folder Name="/modulo-central/">
