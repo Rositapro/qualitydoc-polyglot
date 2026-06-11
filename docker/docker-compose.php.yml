@@ -1,0 +1,57 @@
+# Microservicio 2: Portal Público (PHP 8.3 + PostgreSQL 16)
+# Levantarlo: docker-compose -f docker-compose.php.yml up -d --build
+# Detenerlo:  docker-compose -f docker-compose.php.yml down
+
+services:
+
+  db-postgres:
+    image: postgres:16.3-alpine3.20
+    container_name: db-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: sgd_user
+      POSTGRES_PASSWORD: sgd_password
+      POSTGRES_DB: sgd_db
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ../db/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - php-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sgd_user -d sgd_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  web-php:
+    build:
+      context: ../src/php-app
+      dockerfile: ../../docker/php.Dockerfile
+    container_name: web-php
+    ports:
+      - "8080:80"
+    environment:
+      - DB_HOST=db-postgres
+      - DB_PORT=5432
+      - DB_NAME=sgd_db
+      - DB_USER=sgd_user
+      - DB_PASSWORD=sgd_password
+      - AUTH_API_URL=http://host.docker.internal:5000/api/login
+    volumes:
+      - ../src/php-app:/var/www/html
+      - uploads_shared:/var/www/html/uploads
+    depends_on:
+      db-postgres:
+        condition: service_healthy
+    networks:
+      - php-net
+
+networks:
+  php-net:
+    driver: bridge
+
+volumes:
+  pg_data:
+  uploads_shared:

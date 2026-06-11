@@ -1,0 +1,46 @@
+# Microservicio 3: Búsqueda Inteligente (Node.js 20 + MongoDB 7)
+# Levantarlo: docker-compose -f docker-compose.node.yml up -d --build
+# Detenerlo:  docker-compose -f docker-compose.node.yml down
+
+services:
+
+  db-mongodb:
+    image: mongo:7.0.12
+    container_name: db-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+      - ../db/mongodb/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js
+    networks:
+      - node-net
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  search-service:
+    build:
+      context: ../src/node-service
+      dockerfile: ../../docker/node.Dockerfile
+    container_name: search-service
+    ports:
+      - "3000:3000"
+    environment:
+      - MONGODB_URI=mongodb://db-mongodb:27017/qualitydoc
+      - NODE_ENV=production
+      - AUTH_API_URL=http://host.docker.internal:5000/api/login
+    depends_on:
+      db-mongodb:
+        condition: service_healthy
+    networks:
+      - node-net
+
+networks:
+  node-net:
+    driver: bridge
+
+volumes:
+  mongo_data:

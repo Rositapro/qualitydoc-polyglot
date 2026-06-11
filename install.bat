@@ -60,7 +60,12 @@ echo [4/5] Construyendo imagenes Docker (esto puede tardar varios minutos)...
 echo       Por favor espere...
 echo.
 cd /d "%~dp0docker"
-docker-compose build --no-cache
+echo  Microservicio 1: .NET + SQL Server...
+docker-compose -f docker-compose.dotnet.yml build --no-cache
+echo  Microservicio 2: PHP + PostgreSQL...
+docker-compose -f docker-compose.php.yml build --no-cache
+echo  Microservicio 3: Node.js + MongoDB...
+docker-compose -f docker-compose.node.yml build --no-cache
 if %errorlevel% neq 0 (
     echo.
     echo  ERROR: Fallo la construccion de las imagenes.
@@ -76,7 +81,9 @@ echo  OK - Imagenes construidas correctamente.
 :: ─────────────────────────────────────────────
 echo.
 echo [5/5] Levantando todos los servicios...
-docker-compose up -d
+docker-compose -f docker-compose.dotnet.yml up -d
+docker-compose -f docker-compose.php.yml up -d
+docker-compose -f docker-compose.node.yml up -d
 if %errorlevel% neq 0 (
     echo.
     echo  ERROR: No se pudieron levantar los servicios.

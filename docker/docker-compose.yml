@@ -50,7 +50,7 @@ services:
 
   # Base de Datos NoSQL MongoDB
   db-mongodb:
-    image: mongo:latest
+    image: mongo:7.0.12
     container_name: db-mongodb
     ports:
       - "27017:27017"
@@ -82,7 +82,7 @@ services:
   # ==========================================
 
   db-sqlserver:
-    image: mcr.microsoft.com/mssql/server:2022-latest
+    image: mcr.microsoft.com/mssql/server:2022-CU14-ubuntu-22.04
     container_name: db-sqlserver
     user: root
     ports:
