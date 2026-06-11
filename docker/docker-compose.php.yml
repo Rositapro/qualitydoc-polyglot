@@ -1,6 +1,4 @@
-# Microservicio 2: Portal Público (PHP 8.3 + PostgreSQL 16)
-# Levantarlo: docker-compose -f docker-compose.php.yml up -d --build
-# Detenerlo:  docker-compose -f docker-compose.php.yml down
+name: qualitydoc-php
 
 services:
 
@@ -17,7 +15,7 @@ services:
       - pg_data:/var/lib/postgresql/data
       - ../db/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
-      - php-net
+      - qualitydoc-net
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U sgd_user -d sgd_db"]
       interval: 10s
@@ -38,7 +36,7 @@ services:
       - DB_NAME=sgd_db
       - DB_USER=sgd_user
       - DB_PASSWORD=sgd_password
-      - AUTH_API_URL=http://host.docker.internal:5000/api/login
+      - AUTH_API_URL=http://admin-dotnet:8080/api/login
     volumes:
       - ../src/php-app:/var/www/html
       - uploads_shared:/var/www/html/uploads
@@ -46,11 +44,12 @@ services:
       db-postgres:
         condition: service_healthy
     networks:
-      - php-net
+      - qualitydoc-net
 
 networks:
-  php-net:
-    driver: bridge
+  qualitydoc-net:
+    name: qualitydoc-net
+    external: true
 
 volumes:
   pg_data:

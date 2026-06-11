@@ -1,6 +1,4 @@
-# Microservicio 3: Búsqueda Inteligente (Node.js 20 + MongoDB 7)
-# Levantarlo: docker-compose -f docker-compose.node.yml up -d --build
-# Detenerlo:  docker-compose -f docker-compose.node.yml down
+name: qualitydoc-node
 
 services:
 
@@ -13,7 +11,7 @@ services:
       - mongo_data:/data/db
       - ../db/mongodb/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js
     networks:
-      - node-net
+      - qualitydoc-net
     healthcheck:
       test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
       interval: 10s
@@ -31,16 +29,17 @@ services:
     environment:
       - MONGODB_URI=mongodb://db-mongodb:27017/qualitydoc
       - NODE_ENV=production
-      - AUTH_API_URL=http://host.docker.internal:5000/api/login
+      - AUTH_API_URL=http://admin-dotnet:8080/api/login
     depends_on:
       db-mongodb:
         condition: service_healthy
     networks:
-      - node-net
+      - qualitydoc-net
 
 networks:
-  node-net:
-    driver: bridge
+  qualitydoc-net:
+    name: qualitydoc-net
+    external: true
 
 volumes:
   mongo_data:
