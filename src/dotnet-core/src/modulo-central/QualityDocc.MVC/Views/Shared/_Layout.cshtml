@@ -181,13 +181,39 @@
                         <span class="fw-bold">@User.Identity.Name</span>
                         @{
                             var userRole = "";
-                            if (User.IsInRole("SuperAdmin")) userRole = "SuperAdmin";
-                            else if (User.IsInRole("Administrator")) userRole = "Admin";
-                            else if (User.IsInRole("Reviewer")) userRole = "Revisor";
-                            else if (User.IsInRole("Author")) userRole = "Autor";
-                            else if (User.IsInRole("Reader")) userRole = "Lector";
+                            var roleBgColor = "#72635a"; // default
+                            if (User.IsInRole("SuperAdmin"))
+                            {
+                                userRole = "SuperAdmin";
+                                roleBgColor = "#8b0000"; // dark red
+                            }
+                            else if (User.IsInRole("Administrator"))
+                            {
+                                userRole = "Admin";
+                                roleBgColor = "#0d6efd"; // blue
+                            }
+                            else if (User.IsInRole("Reviewer"))
+                            {
+                                userRole = "Revisor";
+                                roleBgColor = "#6f42c1"; // purple
+                            }
+                            else if (User.IsInRole("Author"))
+                            {
+                                userRole = "Autor";
+                                roleBgColor = "#198754"; // green
+                            }
+                            else if (User.IsInRole("Approver"))
+                            {
+                                userRole = "Aprobador";
+                                roleBgColor = "#fd7e14"; // orange
+                            }
+                            else if (User.IsInRole("Reader"))
+                            {
+                                userRole = "Lector";
+                                roleBgColor = "#6c757d"; // gray
+                            }
                         }
-                        <span class="badge" style="font-size: 0.75rem; background-color: #72635a !important; color: #ffffff;">@userRole</span>
+                        <span class="badge" style="font-size: 0.75rem; background-color: @roleBgColor !important; color: #ffffff;">@userRole</span>
                     </div>
                 </div>
             </div>

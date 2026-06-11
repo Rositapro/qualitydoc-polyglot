@@ -50,7 +50,7 @@ namespace QualityDocc.MVC.Controllers
                 // 3. Crear las Claims (La "identidad" del usuario)
                 var claims = new List<Claim>
                 {
-                    new Claim(ClaimTypes.Name, user.Email),
+                    new Claim(ClaimTypes.Name, user.Username),
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                     new Claim(ClaimTypes.Role, user.Role.Name),
                     new Claim("CompanyId", user.CompanyId?.ToString() ?? "") // Guardamos la empresa aquí
