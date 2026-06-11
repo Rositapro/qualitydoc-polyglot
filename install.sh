@@ -64,7 +64,9 @@ echo ""
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR/docker"
 
-docker-compose build --no-cache
+docker-compose -f docker-compose.dotnet.yml build --no-cache
+docker-compose -f docker-compose.php.yml build --no-cache
+docker-compose -f docker-compose.node.yml build --no-cache
 echo -e "${GREEN} ✓ Imágenes construidas correctamente.${NC}"
 
 # ─────────────────────────────────────────────
@@ -72,7 +74,9 @@ echo -e "${GREEN} ✓ Imágenes construidas correctamente.${NC}"
 # ─────────────────────────────────────────────
 echo ""
 echo -e "${YELLOW}[5/5]${NC} Levantando todos los servicios..."
-docker-compose up -d
+docker-compose -f docker-compose.dotnet.yml up -d
+docker-compose -f docker-compose.php.yml up -d
+docker-compose -f docker-compose.node.yml up -d
 echo -e "${GREEN} ✓ Servicios levantados.${NC}"
 
 # Esperar que los servicios inicien

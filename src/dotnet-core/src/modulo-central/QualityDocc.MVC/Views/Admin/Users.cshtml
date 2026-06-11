@@ -62,18 +62,40 @@
                                     <td class="p-3 fw-bold text-dark">@user.Username</td>
                                     <td class="p-3 text-dark">@user.Email</td>
                                     <td class="p-3">
-                                        @if (user.Role?.Name == "Admin")
-                                        {
-                                            <span class="badge bg-danger">Admin</span>
+                                        @{
+                                            var roleText = user.Role?.Name ?? "Sin Rol";
+                                            var roleColor = "#72635a"; // default
+                                            if (roleText == "SuperAdmin")
+                                            {
+                                                roleColor = "#8b0000"; // dark red
+                                            }
+                                            else if (roleText == "Administrator" || roleText == "Admin")
+                                            {
+                                                roleText = "Admin";
+                                                roleColor = "#0d6efd"; // blue
+                                            }
+                                            else if (roleText == "Reviewer" || roleText == "Revisor")
+                                            {
+                                                roleText = "Revisor";
+                                                roleColor = "#6f42c1"; // purple
+                                            }
+                                            else if (roleText == "Author" || roleText == "Autor")
+                                            {
+                                                roleText = "Autor";
+                                                roleColor = "#198754"; // green
+                                            }
+                                            else if (roleText == "Approver" || roleText == "Aprobador")
+                                            {
+                                                roleText = "Aprobador";
+                                                roleColor = "#fd7e14"; // orange
+                                            }
+                                            else if (roleText == "Reader" || roleText == "Lector")
+                                            {
+                                                roleText = "Lector";
+                                                roleColor = "#6c757d"; // gray
+                                            }
                                         }
-                                        else if (user.Role?.Name == "Reviewer")
-                                        {
-                                            <span class="badge bg-warning text-dark">Revisor</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-info text-white">@user.Role?.Name</span>
-                                        }
+                                        <span class="badge" style="font-size: 0.75rem; background-color: @roleColor !important; color: #ffffff;">@roleText</span>
                                     </td>
                                     <td class="p-3 text-dark">@(user.Company?.Name ?? "Ninguna (SuperAdmin)")</td>
                                     <td class="p-3 text-center">
