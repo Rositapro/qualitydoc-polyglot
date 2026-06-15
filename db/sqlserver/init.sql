@@ -148,3 +148,23 @@ CREATE NONCLUSTERED INDEX IX_Document_CompanyId ON Document(CompanyId);
 CREATE NONCLUSTERED INDEX IX_Document_IsoId ON Document(IsoId);
 CREATE NONCLUSTERED INDEX IX_User_Email ON [User](Email);
 GO
+
+-- ==========================================
+-- TRIGGERS (Disparadores de Base de Datos)
+-- ==========================================
+-- Actualiza la fecha de modificación del documento automáticamente al cambiar el WorkflowState
+CREATE TRIGGER trg_Document_AuditUpdate
+ON Document
+AFTER UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    IF UPDATE(WorkflowState)
+    BEGIN
+        UPDATE Document
+        SET DateUpdate = GETDATE()
+        FROM Document d
+        INNER JOIN inserted i ON d.Id = i.Id;
+    END
+END;
+GO
