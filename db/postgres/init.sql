@@ -60,4 +60,27 @@ CREATE INDEX idx_sugerencias_empresa ON sugerencias(empresaid);
 -- ==========================================
 -- DATOS SEMILLA (Seed Data)
 -- ==========================================
--- Se inicia con la base de datos vacía para permitir registros limpios desde la aplicación.
+-- Insertar usuario de sistema para auditoría automática por trigger
+INSERT INTO usuarios (idusuario, nombreusuario, rol, empresaid) 
+VALUES ('sistema_dotnet', 'Sistema central .NET', 'sistema', 1);
+
+-- ==========================================
+-- TRIGGERS (Disparadores de Base de Datos)
+-- ==========================================
+
+-- 1. Crear función del disparador
+CREATE OR REPLACE FUNCTION trigger_log_publicacion()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Inserta de manera automática un log de visualización cuando se publica un nuevo documento
+    INSERT INTO logsconsultas (idusuario, iddocumento, accion, empresaid, fecha)
+    VALUES ('sistema_dotnet', NEW.iddocumento, 'visualizacion', NEW.empresaid, NOW());
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 2. Crear el trigger en la tabla documento
+CREATE TRIGGER trg_despues_publicar
+AFTER INSERT ON documento
+FOR EACH ROW
+EXECUTE FUNCTION trigger_log_publicacion();
