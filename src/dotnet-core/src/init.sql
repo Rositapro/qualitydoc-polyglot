@@ -66,6 +66,6 @@ CREATE TABLE ApprovalFlow (
 -- 5. Datos Iniciales
 INSERT INTO Role (Name) VALUES ('SuperAdmin'), ('Administrador'), ('Revisor'), ('Autor'), ('Lector'), ('Aprobador');
 INSERT INTO Company (Name) VALUES ('Empresa Maestra');
-INSERT INTO [User] (Username, PasswordHash, RoleId, CompanyId, Email) VALUES ('superadmin', 'Document2026!', 1, NULL, 'superadmin@qualitydoc.com');
-INSERT INTO [User] (Username, PasswordHash, RoleId, CompanyId, Email) VALUES ('admin_empresa', 'Document2026!', 2, 1, 'admin_empresa@qualitydoc.com');
+INSERT INTO [User] (Username, PasswordHash, RoleId, CompanyId, Email) VALUES ('superadmin', 'Ho+T3Gd14Ck1nr+a0C8svscVBLaeNtnp9NThBijBOuBDRmwZ+vvr9KFRGgFP0Wy9', 1, NULL, 'superadmin@qualitydoc.com');
+INSERT INTO [User] (Username, PasswordHash, RoleId, CompanyId, Email) VALUES ('admin_empresa', 'Ho+T3Gd14Ck1nr+a0C8svscVBLaeNtnp9NThBijBOuBDRmwZ+vvr9KFRGgFP0Wy9', 2, 1, 'admin_empresa@qualitydoc.com');
 GO

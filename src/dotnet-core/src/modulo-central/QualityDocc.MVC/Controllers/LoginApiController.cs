@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using QualityDocc.Infrastructure.Data;
 using QualityDocc.MVC.Models; // Asegúrate de tener tu APILoginRequest en esta carpeta
 using System.Threading.Tasks;
+using QualityDocc.Domain.Helpers;
 
 namespace QualityDocc.MVC.Controllers
 {
@@ -27,14 +28,14 @@ namespace QualityDocc.MVC.Controllers
                 return Unauthorized(new { success = false, error = "El correo y la contraseña son requeridos." });
             }
 
-            // 2. Buscar en la base de datos con el rol y empresa incluidos
+            // 2. Buscar en la base de datos con el rol y empresa incluidos (solo por email)
             var user = await _context.User
                 .Include(u => u.Role)
                 .Include(u => u.Company)
-                .FirstOrDefaultAsync(u => u.Email == request.Email && u.PasswordHash == request.Password);
+                .FirstOrDefaultAsync(u => u.Email == request.Email);
 
-            // 3. Respuesta Fallida (401 Unauthorized)
-            if (user == null)
+            // 3. Respuesta Fallida (401 Unauthorized) si el usuario no existe o la contraseña no coincide
+            if (user == null || !PasswordHelper.VerifyPassword(request.Password, user.PasswordHash))
             {
                 return Unauthorized(new { success = false, message = "Credenciales incorrectas." });
             }

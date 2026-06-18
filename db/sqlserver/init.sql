@@ -95,6 +95,7 @@ CREATE TABLE DocumentVersion (
     IdUserUpdate INT NULL,
     IdUserDelete INT NULL
 );
+--
 
 -- 4. Flujo de Aprobación
 CREATE TABLE ApprovalFlow (
@@ -137,10 +138,10 @@ INSERT INTO Company (Name) VALUES ('Empresa Maestra'); -- ID 1
 -- Seed Users
 -- SuperAdmin & Admin Maestra
 INSERT INTO [User] (Username, PasswordHash, RoleId, CompanyId, Email) 
-VALUES ('superadmin', 'Document2026!', 1, NULL, 'superadmin@qualitydoc.com');
+VALUES ('superadmin', 'Ho+T3Gd14Ck1nr+a0C8svscVBLaeNtnp9NThBijBOuBDRmwZ+vvr9KFRGgFP0Wy9', 1, NULL, 'superadmin@qualitydoc.com');
 
 INSERT INTO [User] (Username, PasswordHash, RoleId, CompanyId, Email) 
-VALUES ('admin_empresa', 'Document2026!', 2, 1, 'admin_empresa@qualitydoc.com');
+VALUES ('admin_empresa', 'Ho+T3Gd14Ck1nr+a0C8svscVBLaeNtnp9NThBijBOuBDRmwZ+vvr9KFRGgFP0Wy9', 2, 1, 'admin_empresa@qualitydoc.com');
 GO
 
 -- 6. Índices de Rendimiento para Búsquedas Frecuentes (Rúbrica: Taller de Bases de Datos)
@@ -149,22 +150,3 @@ CREATE NONCLUSTERED INDEX IX_Document_IsoId ON Document(IsoId);
 CREATE NONCLUSTERED INDEX IX_User_Email ON [User](Email);
 GO
 
--- ==========================================
--- TRIGGERS (Disparadores de Base de Datos)
--- ==========================================
--- Actualiza la fecha de modificación del documento automáticamente al cambiar el WorkflowState
-CREATE TRIGGER trg_Document_AuditUpdate
-ON Document
-AFTER UPDATE
-AS
-BEGIN
-    SET NOCOUNT ON;
-    IF UPDATE(WorkflowState)
-    BEGIN
-        UPDATE Document
-        SET DateUpdate = GETDATE()
-        FROM Document d
-        INNER JOIN inserted i ON d.Id = i.Id;
-    END
-END;
-GO

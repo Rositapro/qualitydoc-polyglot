@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QualityDocc.Domain.Entities;
+using QualityDocc.Domain.Helpers;
 using QualityDocc.Infrastructure.Data;
 using System;
 using System.IO;
@@ -132,7 +133,7 @@ namespace QualityDocc.MVC.Controllers
                 return RedirectToAction(nameof(Users));
             }
 
-            user.PasswordHash = plainPassword;
+            user.PasswordHash = PasswordHelper.HashPassword(plainPassword);
             // Status = true por defecto (heredado de BaseEntity)
 
             _context.User.Add(user);
@@ -193,7 +194,7 @@ namespace QualityDocc.MVC.Controllers
 
             if (!string.IsNullOrWhiteSpace(plainPassword))
             {
-                userToEdit.PasswordHash = plainPassword;
+                userToEdit.PasswordHash = PasswordHelper.HashPassword(plainPassword);
             }
 
             _context.User.Update(userToEdit);

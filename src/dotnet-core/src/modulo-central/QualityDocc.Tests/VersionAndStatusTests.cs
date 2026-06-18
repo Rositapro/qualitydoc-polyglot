@@ -1,6 +1,7 @@
 using System;
 using Xunit;
 using QualityDocc.Domain.Entities;
+using QualityDocc.Domain.Helpers;
 
 namespace QualityDocc.Tests
 {
@@ -63,6 +64,64 @@ namespace QualityDocc.Tests
         {
             // Assert
             Assert.Equal(6, (int)DocumentStatus.EnAutorizacion);
+        }
+
+        [Fact]
+        public void PasswordHelper_HashPassword_ShouldProduceDifferentHashesForSamePassword()
+        {
+            // Arrange
+            string password = "Document2026!";
+
+            // Act
+            string hash1 = PasswordHelper.HashPassword(password);
+            string hash2 = PasswordHelper.HashPassword(password);
+
+            // Assert
+            Assert.NotEmpty(hash1);
+            Assert.NotEmpty(hash2);
+            Assert.NotEqual(hash1, hash2); // Debido a la sal aleatoria
+        }
+
+        [Fact]
+        public void PasswordHelper_VerifyPassword_ShouldSucceedWithCorrectPassword()
+        {
+            // Arrange
+            string password = "Document2026!";
+            string hash = PasswordHelper.HashPassword(password);
+
+            // Act
+            bool isValid = PasswordHelper.VerifyPassword(password, hash);
+
+            // Assert
+            Assert.True(isValid);
+        }
+
+        [Fact]
+        public void PasswordHelper_VerifyPassword_ShouldFailWithIncorrectPassword()
+        {
+            // Arrange
+            string password = "Document2026!";
+            string incorrectPassword = "WrongPassword!";
+            string hash = PasswordHelper.HashPassword(password);
+
+            // Act
+            bool isValid = PasswordHelper.VerifyPassword(incorrectPassword, hash);
+
+            // Assert
+            Assert.False(isValid);
+        }
+
+        [Fact]
+        public void PasswordHelper_GenerateSeedHash_PrintToConsole()
+        {
+            string password = "Document2026!";
+            string hash = PasswordHelper.HashPassword(password);
+            
+            // Verificamos que sea válido
+            Assert.True(PasswordHelper.VerifyPassword(password, hash));
+            
+            // Imprimimos el hash para la consola
+            Console.WriteLine($"HASH_SEED_VALUE: {hash}");
         }
     }
 }

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QualityDocc.Infrastructure.Data;
+using QualityDocc.Domain.Helpers;
 
 namespace QualityDocc.MVC.Controllers
 {
@@ -44,8 +45,8 @@ namespace QualityDocc.MVC.Controllers
                 return View();
             }
 
-            // 3. Validación simple (Ojo: En producción usa PasswordHasher)
-            if (user != null && user.PasswordHash == password)
+            // 3. Validación segura mediante hashing
+            if (user != null && PasswordHelper.VerifyPassword(password, user.PasswordHash))
             {
                 // 3. Crear las Claims (La "identidad" del usuario)
                 var claims = new List<Claim>
